@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extrem-Doppelkopf Tracker</title>
+    <title>Extrem-Doppelkopf Tracker V2</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -483,16 +483,28 @@
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // These will be undefined on a live GitHub Pages site, so provide fallbacks
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'doppelkopf-tracker-default'; // Default ID for live site
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {}; // Empty object for live site
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
+        let app;
+        let db;
+        let auth;
         let currentUserId = null;
+
+        // Initialize Firebase only if a valid config is provided
+        if (Object.keys(firebaseConfig).length > 0) {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            console.log("Firebase initialized with provided config.");
+        } else {
+            console.warn("Firebase config not found. Data persistence (saving/loading sessions) will not work.");
+            // Optional: Show a message to the user if Firebase is not configured
+            // showMessage("Hinweis: Firebase-Konfiguration nicht gefunden. Sitzungen können nicht gespeichert oder geladen werden.", false);
+        }
+
         let currentSessionId = null;
         let players = [];
         let currentPot = 120; // Initial pot value in DM points (120 Punkte)
@@ -608,30 +620,46 @@
 
         // --- Firebase Authentication ---
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                userIdDisplay.textContent = currentUserId;
-                console.log("Authenticated with user ID:", currentUserId);
-                // Load the last active session or start a new one
-                await loadLastSession();
-                await loadAllSessions(); // Load all sessions for the user
-            } else {
-                console.log("No user signed in. Attempting anonymous sign-in or custom token sign-in.");
-                try {
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("Signed in with custom token.");
-                    } else {
-                        await signInAnonymously(auth);
-                        console.log("Signed in anonymously.");
+        // Only attempt auth if Firebase app is initialized
+        if (auth) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    userIdDisplay.textContent = currentUserId;
+                    console.log("Authenticated with user ID:", currentUserId);
+                    // Load the last active session or start a new one
+                    await loadLastSession();
+                    await loadAllSessions(); // Load all sessions for the user
+                } else {
+                    console.log("No user signed in. Attempting anonymous sign-in or custom token sign-in.");
+                    try {
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                            console.log("Signed in with custom token.");
+                        } else {
+                            await signInAnonymously(auth);
+                            console.log("Signed in anonymously.");
+                        }
+                    } catch (error) {
+                        console.error("Authentication failed:", error);
+                        showMessage("Fehler bei der Authentifizierung: " + error.message);
                     }
-                } catch (error) {
-                    console.error("Authentication failed:", error);
-                    showMessage("Fehler bei der Authentifizierung: " + error.message);
                 }
-            }
-        });
+            });
+        } else {
+            // If Firebase is not initialized, set a default user ID and initialize the app state
+            currentUserId = 'anonymous-local-user'; // A placeholder user ID
+            userIdDisplay.textContent = currentUserId;
+            console.warn("Firebase not initialized. Operating in local mode without cloud persistence.");
+            // Initialize app state with default players and pot if no Firebase
+            players = [...defaultPlayers];
+            players.forEach(player => initializePlayerSoloStatus(player));
+            renderPlayers();
+            updatePotDisplay();
+            renderGameHistory();
+            updateKeineXCheckboxState();
+        }
+
 
         // --- Player Management ---
 
@@ -1494,8 +1522,8 @@
          * @param {boolean} showSuccessMessage - Whether to show a success message.
          */
         async function saveCurrentSession(showSuccessMessage = true) {
-            if (!currentUserId) {
-                showMessage("Benutzer nicht authentifiziert. Kann Sitzung nicht speichern.");
+            if (!db || !currentUserId) {
+                showMessage("Firebase ist nicht konfiguriert oder Benutzer nicht authentifiziert. Sitzung kann nicht gespeichert werden.");
                 return;
             }
             if (!currentSessionId) {
@@ -1529,7 +1557,10 @@
          * Loads the last active session for the current user.
          */
         async function loadLastSession() {
-            if (!currentUserId) return;
+            if (!db || !currentUserId) {
+                console.warn("Firebase ist nicht konfiguriert oder Benutzer nicht authentifiziert. Letzte Sitzung kann nicht geladen werden.");
+                return;
+            }
 
             try {
                 const sessionsColRef = collection(db, `artifacts/${appId}/users/${currentUserId}/doppelkopf_sessions`);
@@ -1567,8 +1598,8 @@
          * @param {object} [sessionData] - Optional: The session data if already fetched.
          */
         async function loadSession(sessionId, sessionData = null) {
-            if (!currentUserId) {
-                showMessage("Benutzer nicht authentifiziert. Kann Sitzung nicht laden.");
+            if (!db || !currentUserId) {
+                showMessage("Firebase ist nicht konfiguriert oder Benutzer nicht authentifiziert. Sitzung kann nicht geladen werden.");
                 return;
             }
 
@@ -1616,7 +1647,11 @@
          * Loads and displays all saved sessions for the current user.
          */
         async function loadAllSessions() {
-            if (!currentUserId) return;
+            if (!db || !currentUserId) {
+                sessionListDiv.innerHTML = '<p class="text-gray-500 text-center">Firebase ist nicht konfiguriert. Gespeicherte Sitzungen können nicht angezeigt werden.</p>';
+                console.warn("Firebase ist nicht konfiguriert oder Benutzer nicht authentifiziert. Alle Sitzungen können nicht geladen werden.");
+                return;
+            }
 
             sessionListDiv.innerHTML = '<p class="text-gray-500 text-center">Sitzungen werden geladen...</p>';
             try {
@@ -1677,7 +1712,10 @@
             if (showSuccessMessage) {
                 showMessage("Neue Sitzung gestartet.");
             }
-            saveCurrentSession(false); // Automatically save the new empty session silently
+            // Only attempt to save if Firebase is configured
+            if (db) {
+                saveCurrentSession(false); // Automatically save the new empty session silently
+            }
             updateKeineXCheckboxState(); // Update checkbox state after starting new session
         }
 
@@ -1686,8 +1724,8 @@
          * @param {string} sessionId - The ID of the session to delete.
          */
         window.deleteSession = async (sessionId) => {
-            if (!currentUserId) {
-                showMessage("Benutzer nicht authentifiziert. Kann Sitzung nicht löschen.");
+            if (!db || !currentUserId) {
+                showMessage("Firebase ist nicht konfiguriert oder Benutzer nicht authentifiziert. Sitzung kann nicht gelöscht werden.");
                 return;
             }
             const confirmed = await showMessage(`Möchtest du die Sitzung "${sessionId}" wirklich löschen?`, true);
@@ -1792,15 +1830,16 @@
         pointsInput.addEventListener('input', updateKeineXCheckboxState); // Add listener for points input
 
         // Initial rendering
-        // Ensure default players are set if no session is loaded initially
-        if (players.length === 0) {
+        // Ensure default players are set if no session is loaded initially AND Firebase is not configured
+        // If Firebase is configured, the loadLastSession() will handle initial state.
+        if (!db && players.length === 0) { // Only if Firebase is NOT active and players are empty
             players = [...defaultPlayers];
             players.forEach(player => initializePlayerSoloStatus(player));
+            renderPlayers();
+            updatePotDisplay();
+            renderGameHistory();
+            updateKeineXCheckboxState(); // Call initially on page load
         }
-        renderPlayers();
-        updatePotDisplay();
-        renderGameHistory();
-        updateKeineXCheckboxState(); // Call initially on page load
     </script>
 </body>
 </html>
