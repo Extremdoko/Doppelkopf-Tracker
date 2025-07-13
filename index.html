@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrem-Doppelkopf Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 1000px; /* Increased max-width for more columns */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #4CAF50; /* Green */
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: #007bff; /* Blue */
+            color: white;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background-color: #dc3545; /* Red */
+            color: white;
+            border: none;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+        input[type="text"], input[type="number"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: white;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        /* Style for multi-select dropdowns */
+        select[multiple] {
+            min-height: 100px; /* Adjust as needed */
+        }
+        /* Table specific styles */
+        .game-history-table th, .game-history-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center; /* Center align table content */
+        }
+        .game-history-table th {
+            font-weight: 600;
+            background-color: #e2e8f0;
+        }
+        .game-history-table tbody tr:hover {
+            background-color: #f0f4f8;
+        }
+        .points-positive {
+            color: #10b981; /* Green */
+            font-weight: bold;
+        }
+        .points-negative {
+            color: #ef4444; /* Red */
+            font-weight: bold;
+        }
+        /* Custom style for bold dark blue text */
+        .text-darkblue-bold {
+            color: #1a202c; /* A dark blue/gray from Tailwind's color palette, adjust if a specific dark blue is preferred */
+            font-weight: bold;
+        }
+        /* New style to remove any unintended highlighting */
+        .no-highlight {
+            background: unset !important; /* Most aggressive background reset */
+            background-color: unset !important;
+            box-shadow: unset !important;
+            color: inherit !important; /* Ensure text color is inherited */
+            text-shadow: unset !important; /* Remove any text shadows */
+            outline: unset !important; /* Remove any outline */
+            text-decoration: unset !important; /* Remove any text decoration */
+            /* Attempt to override selection highlight */
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none;   /* Safari */
+            -khtml-user-select: none;    /* Konqueror HTML */
+            -moz-user-select: none;      /* Old versions of Firefox */
+            -ms-user-select: none;       /* Internet Explorer/Edge */
+            user-select: none;           /* Non-prefixed version, currently
+                                            supported by Chrome, Edge, Opera and Firefox */
+        }
+
+        /* Attempt to override browser's find highlight (may not work in all browsers/iframes) */
+        ::selection {
+            background: transparent !important;
+            color: inherit !important;
+        }
+        ::-moz-selection { /* Firefox */
+            background: transparent !important;
+            color: inherit !important;
+        }
+
+        /* Styles for player headers with solo status */
+        .player-header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+            box-sizing: border-box; /* Ensure padding is inside the border */
+        }
+        .solo-indicators {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .solo-indicator {
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 600; /* font-semibold */
+            line-height: 1;
+        }
+        .solo-indicator.completed {
+            color: #10b981; /* Tailwind green-600 */
+        }
+        .solo-indicator.pending {
+            color: #9ca3af; /* Tailwind gray-400 */
+        }
+        /* Apply border to the inner content div, not the th */
+        .player-header-content.player-header-completed-solos {
+            border: 2px solid #10b981; /* Tailwind green-500 */
+            border-radius: 8px; /* Rounded corners for the border */
+            margin: -2px; /* Counteract the border width so it doesn't push content too much */
+        }
+
+        /* Adjust th padding and remove its border-bottom if the inner div handles it */
+        .game-history-table th {
+            padding: 8px; /* Keep original padding for th */
+            border-bottom: none; /* Remove default border-bottom from th */
+        }
+        /* Ensure the top border of the tbody cells connects visually */
+        .game-history-table tbody tr:first-child td {
+             border-top: 1px solid #e2e8f0; /* Add a top border to the first row of tbody */
+        }
+
+        /* Styling for the Ranking row */
+        .ranking-row {
+            border-top: 2px solid #6b7280; /* Darker gray border */
+            margin-top: 10px; /* Add some space above */
+            background-color: #e5e7eb; /* Slightly different background for distinction */
+        }
+
+        /* Styling for the main title with symbols */
+        .main-title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* Space between symbol and text */
+        }
+        .main-title-symbol {
+            font-size: 2.5rem; /* Adjust size of symbols */
+            line-height: 1;
+            color: #1a202c; /* Dark blue/gray, matching text-darkblue-bold */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-title-container mb-4">
+            <span class="main-title-symbol">&#x2660;</span> <!-- Black Spade -->
+            <h1 class="text-3xl font-bold text-center text-darkblue-bold m-0">Extrem-Doppelkopf-Tracker</h1>
+            <span class="main-title-symbol">&#x2665;</span> <!-- Red Heart -->
+        </div>
+
+        <!-- User ID Display -->
+        <div class="card flex flex-col md:flex-row items-center justify-between p-4 bg-blue-100 border border-blue-200 rounded-lg shadow-sm">
+            <span class="text-blue-800 font-semibold mb-2 md:mb-0">Deine Benutzer-ID:</span>
+            <span id="userIdDisplay" class="text-blue-900 text-sm break-all">Wird geladen...</span>
+        </div>
+
+        <!-- Pot Display -->
+        <div class="card text-center bg-green-100 p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold text-gray-700">Aktueller Pot</h2>
+            <p id="currentPot" class="text-5xl font-bold text-green-700 mt-2">0</p>
+        </div>
+
+        <!-- Player Management -->
+        <div class="card">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">Spieler verwalten</h2>
+            <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                <input type="text" id="playerNameInput" placeholder="Spielername">
+                <button id="addPlayerBtn" class="btn btn-primary">Spieler hinzufügen</button>
+            </div>
+            <div id="playerList" class="flex flex-wrap gap-2">
+                <!-- Player tags will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Game Input -->
+        <div class="card">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">Spielergebnis eingeben</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="gameTypeSelect" class="block text-gray-700 text-sm font-bold mb-2">Spieltyp:</label>
+                    <select id="gameTypeSelect" class="w-full">
+                        <option value="normal">Normalspiel</option>
+                        <optgroup label="Pflichtsolo">
+                            <option value="pflichtsolo_knochenloser">Knochenloser</option>
+                            <option value="pflichtsolo_bilder">Bilder</option>
+                            <option value="pflichtsolo_farbe">Farbe</option>
+                        </optgroup>
+                        <optgroup label="Lüstling">
+                            <option value="lustling_knochenloser">Knochenloser</option>
+                            <option value="lustling_bilder">Bilder</option>
+                            <option value="lustling_farbe">Farbe</option>
+                        </optgroup>
+                        <option value="schlanker_martin">Schlanker Martin</option>
+                        <option value="stilles_solo">Stilles Solo</option>
+                        <option value="rote_luise">Rote Luise</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="winningPlayerSelect" class="block text-gray-700 text-sm font-bold mb-2">Gewinner (Partei) - Mehrfachauswahl möglich (Strg/Cmd + Klick):</label>
+                    <select id="winningPlayerSelect" class="w-full" multiple></select>
+                </div>
+                <div>
+                    <label for="losingPlayerSelect" class="block text-gray-700 text-sm font-bold mb-2">Verlierer (Partei) - Mehrfachauswahl möglich (Strg/Cmd + Klick):</label>
+                    <select id="losingPlayerSelect" class="w-full" multiple></select>
+                </div>
+                <div>
+                    <label for="pointsInput" class="block text-gray-700 text-sm font-bold mb-2">Augen/Punkte der Gewinner:</label>
+                    <input type="number" id="pointsInput" placeholder="Gesammelte Augen" min="0" value="120">
+                </div>
+            </div>
+
+            <!-- Special input for Schlanker Martin -->
+            <div id="schlankerMartinOptions" class="mb-4 hidden">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="noStichMade" class="form-checkbox h-5 w-5 text-red-600 rounded">
+                    <span class="ml-2 text-gray-700">Kein Stich gemacht (Schlanker Martin)</span>
+                </label>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Ansagen:</label>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="ansageRe" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                        <span class="ml-2 text-gray-700">Re</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="ansageKontra" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                        <span class="ml-2 text-gray-700">Kontra</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="ansageKeine90" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                        <span class="ml-2 text-gray-700">Keine 90</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="ansageKeine60" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                        <span class="ml-2 text-gray-700">Keine 60</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="ansageKeine30" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                        <span class="ml-2 text-gray-700">Keine 30</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="ansageKeine0" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                        <span class="ml-2 text-gray-700">Keine 0</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Sonderpunkte:</label>
+                <div class="flex flex-wrap -mx-2"> <!-- Use flexbox with negative margin for spacing -->
+                    <div class="w-full sm:w-1/3 px-2 mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="spDoppelkopf" class="form-checkbox h-5 w-5 text-purple-600 rounded">
+                            <span class="ml-2 text-gray-700">Doppelkopf</span>
+                        </label>
+                    </div>
+                    <div class="w-full sm:w-1/3 px-2 mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="spKarlchenMueller" class="form-checkbox h-5 w-5 text-purple-600 rounded">
+                            <span class="ml-2 text-gray-700">Karlchen Müller</span>
+                        </label>
+                    </div>
+                    <div class="w-full sm:w-1/3 px-2 mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="spGewonnenesSoloRoteLuise" class="form-checkbox h-5 w-5 text-purple-600 rounded">
+                            <span class="ml-2 text-gray-700">Gewonnenes Solo<br>bei Roter Luise</span>
+                        </label>
+                    </div>
+                    <div class="w-full sm:w-1/3 px-2 mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="spFuchsGefangen" class="form-checkbox h-5 w-5 text-purple-600 rounded">
+                            <span class="ml-2 text-gray-700">1 Fuchs gefangen</span>
+                        </label>
+                    </div>
+                    <div class="w-full sm:w-1/3 px-2 mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="spZweiFuechseGefangen" class="form-checkbox h-5 w-5 text-purple-600 rounded">
+                            <span class="ml-2 text-gray-700">2 Füchse gefangen</span>
+                        </label>
+                    </div>
+                    <div class="w-full sm:w-1/3 px-2 mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="spFuchsMachtLetztenStich" class="form-checkbox h-5 w-5 text-purple-600 rounded">
+                            <span class="ml-2 text-gray-700 no-highlight">Fuchs macht letzten Stich</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button id="addGameBtn" class="btn btn-secondary w-full">Protokollieren</button>
+        </div>
+
+        <!-- Game History -->
+        <div class="card">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">Spielverlauf</h2>
+            <div id="gameHistoryContainer" class="overflow-x-auto">
+                <table class="game-history-table w-full text-left table-auto">
+                    <thead>
+                        <tr id="gameHistoryTableHeader" class="bg-gray-200 text-gray-700">
+                            <th class="p-2 whitespace-nowrap rounded-tl-lg">Spiel</th>
+                            <th class="p-2 whitespace-nowrap text-darkblue-bold">Pot</th>
+                            <th class="p-2 whitespace-nowrap">Details</th>
+                            <!-- Player columns will be inserted here dynamically -->
+                            <th class="p-2 whitespace-nowrap rounded-tr-lg text-darkblue-bold">Pot</th>
+                            <th class="p-2 whitespace-nowrap">Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gameHistoryTableBody">
+                        <!-- Game rows will be inserted here -->
+                    </tbody>
+                    <tfoot id="gameHistoryTableFooter">
+                        <!-- Total score row and Ranking row will be inserted here -->
+                    </tfoot>
+                </table>
+                <p id="noGamesMessage" class="text-gray-500 text-center mt-4 hidden">Noch keine Spiele protokolliert.</p>
+            </div>
+        </div>
+
+        <!-- Session Management -->
+        <div class="card">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">Sitzung verwalten</h2>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button id="newSessionBtn" class="btn btn-danger flex-grow">Neue Sitzung starten</button>
+                <button id="saveSessionBtn" class="btn btn-primary flex-grow">Sitzung speichern</button>
+                <button id="loadSessionBtn" class="btn btn-secondary flex-grow">Sitzung laden</button>
+            </div>
+            <div id="sessionList" class="mt-4 space-y-2">
+                <!-- Session list will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal (General Purpose) -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalBtn">&times;</span>
+            <p id="modalMessage" class="text-lg text-gray-800"></p>
+            <div class="modal-buttons" id="modalButtons">
+                <button id="modalCancelBtn" class="btn btn-secondary px-4 py-2">Abbrechen</button>
+                <button id="modalConfirmBtn" class="btn btn-danger px-4 py-2">Bestätigen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Replacement Modal -->
+    <div id="replacePlayerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeReplaceModalBtn">&times;</span>
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Spieler ersetzen</h3>
+            <p class="text-gray-700 mb-4">Du hast bereits 4 Spieler. Wähle einen Spieler zum Ersetzen aus:</p>
+            <div class="mb-4">
+                <label for="playerToReplaceSelect" class="block text-gray-700 text-sm font-bold mb-2">Spieler zum Ersetzen:</label>
+                <select id="playerToReplaceSelect" class="w-full"></select>
+            </div>
+            <div class="mb-6">
+                <label for="newPlayerNameInput" class="block text-gray-700 text-sm font-bold mb-2">Neuer Spielername:</label>
+                <input type="text" id="newPlayerNameInput" placeholder="Neuer Spielername">
+            </div>
+            <div class="modal-buttons">
+                <button id="cancelReplaceBtn" class="btn btn-secondary px-4 py-2">Abbrechen</button>
+                <button id="confirmReplaceBtn" class="btn btn-primary px-4 py-2">Ersetzen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUserId = null;
+        let currentSessionId = null;
+        let players = [];
+        let currentPot = 120; // Initial pot value in DM points (120 Punkte)
+        let gameHistory = [];
+        // Object to track completed Pflichtsoli for each player
+        let playerSoloStatus = {}; // { 'PlayerName': { knochenloser: false, bilder: false, farbe: false } }
+
+        // UI Elements
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const currentPotDisplay = document.getElementById('currentPot');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const addPlayerBtn = document.getElementById('addPlayerBtn');
+        const playerListDiv = document.getElementById('playerList');
+        const gameTypeSelect = document.getElementById('gameTypeSelect');
+        const winningPlayerSelect = document.getElementById('winningPlayerSelect');
+        const losingPlayerSelect = document.getElementById('losingPlayerSelect');
+        const pointsInput = document.getElementById('pointsInput');
+        const addGameBtn = document.getElementById('addGameBtn');
+        const gameHistoryContainer = document.getElementById('gameHistoryContainer'); // Parent for table
+        const gameHistoryTableHeader = document.getElementById('gameHistoryTableHeader');
+        const gameHistoryTableBody = document.getElementById('gameHistoryTableBody');
+        const gameHistoryTableFooter = document.getElementById('gameHistoryTableFooter'); // New footer element
+        const noGamesMessage = document.getElementById('noGamesMessage');
+        const newSessionBtn = document.getElementById('newSessionBtn');
+        const saveSessionBtn = document.getElementById('saveSessionBtn');
+        const loadSessionBtn = document.getElementById('loadSessionBtn');
+        const sessionListDiv = document.getElementById('sessionList');
+
+        // General Message Modal
+        const messageModal = document.getElementById('messageModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalButtons = document.getElementById('modalButtons');
+
+        // Player Replacement Modal
+        const replacePlayerModal = document.getElementById('replacePlayerModal');
+        const closeReplaceModalBtn = document.getElementById('closeReplaceModalBtn');
+        const playerToReplaceSelect = document.getElementById('playerToReplaceSelect');
+        const newPlayerNameInput = document.getElementById('newPlayerNameInput');
+        const cancelReplaceBtn = document.getElementById('cancelReplaceBtn');
+        const confirmReplaceBtn = document.getElementById('confirmReplaceBtn');
+
+        // Ansagen Checkboxes
+        const ansageRe = document.getElementById('ansageRe');
+        const ansageKontra = document.getElementById('ansageKontra');
+        const ansageKeine90 = document.getElementById('ansageKeine90');
+        const ansageKeine60 = document.getElementById('ansageKeine60');
+        const ansageKeine30 = document.getElementById('ansageKeine30');
+        const ansageKeine0 = document.getElementById('ansageKeine0');
+
+        // Sonderpunkte Checkboxes
+        const spDoppelkopf = document.getElementById('spDoppelkopf');
+        const spKarlchenMueller = document.getElementById('spKarlchenMueller');
+        const spFuchsGefangen = document.getElementById('spFuchsGefangen');
+        const spZweiFuechseGefangen = document.getElementById('spZweiFuechseGefangen'); // New checkbox element
+        const spFuchsMachtLetztenStich = document.getElementById('spFuchsMachtLetztenStich');
+        const spGewonnenesSoloRoteLuise = document.getElementById('spGewonnenesSoloRoteLuise');
+
+        // Schlanker Martin specific
+        const schlankerMartinOptions = document.getElementById('schlankerMartinOptions');
+        const noStichMade = document.getElementById('noStichMade');
+
+        // Default players
+        const defaultPlayers = ['Krister', 'Christoph', 'Sine', 'Tommy'];
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a message in a modal dialog.
+         * @param {string} message - The message to display.
+         * @param {boolean} showConfirmButtons - Whether to show confirm/cancel buttons.
+         * @returns {Promise<boolean>} - Resolves true if confirmed, false if cancelled.
+         */
+        function showMessage(message, showConfirmButtons = false) {
+            modalMessage.textContent = message;
+            modalMessage.classList.add('text-lg', 'text-gray-800'); // Ensure styling
+            messageModal.style.display = 'flex';
+            modalButtons.style.display = showConfirmButtons ? 'flex' : 'none';
+
+            return new Promise((resolve) => {
+                const confirmHandler = () => {
+                    hideMessage();
+                    resolve(true);
+                    modalConfirmBtn.removeEventListener('click', confirmHandler);
+                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                };
+                const cancelHandler = () => {
+                    hideMessage();
+                    resolve(false);
+                    modalConfirmBtn.removeEventListener('click', confirmHandler);
+                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                };
+
+                modalConfirmBtn.addEventListener('click', confirmHandler);
+                modalCancelBtn.addEventListener('click', cancelHandler);
+                closeModalBtn.addEventListener('click', cancelHandler); // Close button also cancels
+                messageModal.addEventListener('click', (event) => { // Click outside also cancels
+                    if (event.target === messageModal) {
+                        cancelHandler();
+                    }
+                });
+            });
+        }
+
+        /**
+         * Hides the modal dialog.
+         */
+        function hideMessage() {
+            messageModal.style.display = 'none';
+        }
+
+        // --- Firebase Authentication ---
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                userIdDisplay.textContent = currentUserId;
+                console.log("Authenticated with user ID:", currentUserId);
+                // Load the last active session or start a new one
+                await loadLastSession();
+                await loadAllSessions(); // Load all sessions for the user
+            } else {
+                console.log("No user signed in. Attempting anonymous sign-in or custom token sign-in.");
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("Signed in anonymously.");
+                    }
+                } catch (error) {
+                    console.error("Authentication failed:", error);
+                    showMessage("Fehler bei der Authentifizierung: " + error.message);
+                }
+            }
+        });
+
+        // --- Player Management ---
+
+        /**
+         * Initializes the solo status for a new player.
+         * @param {string} playerName - The name of the player.
+         */
+        function initializePlayerSoloStatus(playerName) {
+            playerSoloStatus[playerName] = {
+                knochenloser: false,
+                bilder: false,
+                farbe: false
+            };
+        }
+
+        /**
+         * Recalculates the Pflichtsolo status for all players based on the current game history.
+         * This ensures consistency, especially after game deletion.
+         */
+        function recalculateAllSoloStatus() {
+            // Reset all solo statuses
+            players.forEach(player => {
+                // Only initialize if the player doesn't exist in playerSoloStatus,
+                // or if we explicitly want to reset (e.g., when a player is replaced)
+                if (!playerSoloStatus[player]) {
+                    initializePlayerSoloStatus(player);
+                } else {
+                    // Reset existing player's solo status to false for recalculation
+                    playerSoloStatus[player].knochenloser = false;
+                    playerSoloStatus[player].bilder = false;
+                    playerSoloStatus[player].farbe = false;
+                }
+            });
+
+            // Iterate through game history to re-apply solo completions
+            gameHistory.forEach(game => {
+                if (game.gameType.startsWith('pflichtsolo')) {
+                    let soloist = null;
+                    // Determine the soloist based on which party has only one player
+                    if (game.winner && game.winner.length === 1 && game.loser && game.loser.length === 3) {
+                        soloist = game.winner[0]; // Solist hat gewonnen
+                    } else if (game.winner && game.winner.length === 3 && game.loser && game.loser.length === 1) {
+                        soloist = game.loser[0]; // Solist hat verloren
+                    }
+
+                    if (soloist && playerSoloStatus[soloist] && playerSoloStatus[soloist][game.gameType.split('_')[1]] !== undefined) {
+                        const soloCategory = game.gameType.split('_')[1]; // e.g., 'knochenloser', 'bilder', 'farbe'
+                        playerSoloStatus[soloist][soloCategory] = true;
+                    }
+                }
+            });
+        }
+
+
+        /**
+         * Renders the list of players as interactive tags and populates multi-selects.
+         */
+        function renderPlayers() {
+            playerListDiv.innerHTML = '';
+            winningPlayerSelect.innerHTML = ''; // Clear previous options
+            losingPlayerSelect.innerHTML = ''; // Clear previous options
+            playerToReplaceSelect.innerHTML = ''; // Clear options for replacement modal
+
+            // Clear dynamic player headers in the table
+            // Keep the first three and last two columns (Spiel, Pot (change), Details, Pot (stand), Aktion)
+            // The player columns are inserted between "Details" (index 2) and "Pot Stand" (index `gameHistoryTableHeader.children.length - 2`)
+            const fixedHeaderCountBeforePlayers = 2; // Spiel, Pot (change)
+            const fixedHeaderCountAfterPlayers = 2; // Pot (stand), Aktion
+            const detailsColumnIndex = 2; // Index for the 'Details' column
+
+            // Remove existing player headers
+            // Loop from the end of the current children array backwards to remove player columns
+            // Stop when only the fixed columns (Spiel, Pot, Details, Pot, Aktion) remain
+            while (gameHistoryTableHeader.children.length > (fixedHeaderCountBeforePlayers + fixedHeaderCountAfterPlayers + 1)) {
+                // The player columns are inserted after the 'Details' column (index 2)
+                // So, we always remove the element at index `detailsColumnIndex + 1`
+                gameHistoryTableHeader.children[detailsColumnIndex + 1].remove();
+            }
+
+            if (players.length === 0) {
+                playerListDiv.innerHTML = '<p class="text-gray-500">Noch keine Spieler hinzugefügt.</p>';
+                return;
+            }
+
+            players.forEach(player => {
+                // Create player tag
+                const playerTag = document.createElement('span');
+                playerTag.className = 'bg-blue-200 text-blue-800 px-3 py-1 rounded-full flex items-center gap-2';
+                playerTag.textContent = player;
+
+                // Add remove button to player tag
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'text-blue-600 hover:text-blue-900 font-bold ml-1';
+                removeBtn.textContent = 'x';
+                removeBtn.onclick = () => removePlayer(player);
+                playerTag.appendChild(removeBtn);
+
+                playerListDiv.appendChild(playerTag);
+
+                // Add player to multi-select options
+                const winnerOption = document.createElement('option');
+                winnerOption.value = player;
+                winnerOption.textContent = player;
+                winningPlayerSelect.appendChild(winnerOption);
+
+                const loserOption = document.createElement('option');
+                loserOption.value = player;
+                loserOption.textContent = player;
+                losingPlayerSelect.appendChild(loserOption);
+
+                // Add player to replacement modal select
+                const replaceOption = document.createElement('option');
+                replaceOption.value = player;
+                replaceOption.textContent = player;
+                playerToReplaceSelect.appendChild(replaceOption);
+
+                // Add player column to the table header with solo status
+                const playerHeader = document.createElement('th');
+                playerHeader.className = 'p-2 whitespace-nowrap';
+
+                const playerHeaderContent = document.createElement('div');
+                playerHeaderContent.className = 'player-header-content';
+
+                const playerNameSpan = document.createElement('span');
+                playerNameSpan.textContent = player;
+                playerHeaderContent.appendChild(playerNameSpan);
+
+                const soloIndicatorsDiv = document.createElement('div');
+                soloIndicatorsDiv.className = 'solo-indicators';
+
+                const soloStatus = playerSoloStatus[player] || { knochenloser: false, bilder: false, farbe: false };
+
+                const kSpan = document.createElement('span');
+                kSpan.textContent = 'K';
+                kSpan.className = `solo-indicator ${soloStatus.knochenloser ? 'completed' : 'pending'}`;
+                soloIndicatorsDiv.appendChild(kSpan);
+
+                const bSpan = document.createElement('span');
+                bSpan.textContent = 'B';
+                bSpan.className = `solo-indicator ${soloStatus.bilder ? 'completed' : 'pending'}`;
+                soloIndicatorsDiv.appendChild(bSpan);
+
+                const fSpan = document.createElement('span');
+                fSpan.textContent = 'F';
+                fSpan.className = `solo-indicator ${soloStatus.farbe ? 'completed' : 'pending'}`;
+                soloIndicatorsDiv.appendChild(fSpan);
+
+                playerHeaderContent.appendChild(soloIndicatorsDiv);
+                playerHeader.appendChild(playerHeaderContent);
+
+                // Apply green border to the inner content div if all solos completed
+                if (soloStatus.knochenloser && soloStatus.bilder && soloStatus.farbe) {
+                    playerHeaderContent.classList.add('player-header-completed-solos');
+                } else {
+                    playerHeaderContent.classList.remove('player-header-completed-solos');
+                }
+
+                // Insert before the "Pot Stand" column (which is now the 2nd last child after adding "Details")
+                gameHistoryTableHeader.insertBefore(playerHeader, gameHistoryTableHeader.children[gameHistoryTableHeader.children.length - fixedHeaderCountAfterPlayers]);
+            });
+        }
+
+        /**
+         * Adds a new player to the game or initiates replacement.
+         */
+        addPlayerBtn.addEventListener('click', () => {
+            const playerName = playerNameInput.value.trim();
+            if (!playerName) {
+                showMessage("Bitte gib einen Spielernamen ein.");
+                return;
+            }
+            if (players.includes(playerName)) {
+                showMessage("Dieser Spieler ist bereits hinzugefügt.");
+                return;
+            }
+
+            if (players.length < 4) {
+                players.push(playerName);
+                initializePlayerSoloStatus(playerName); // Initialize solo status for new player
+                playerNameInput.value = '';
+                renderPlayers();
+                saveCurrentSession(false); // Save session silently after adding player
+            } else {
+                // If 4 or more players, open replacement modal
+                openReplacePlayerModal(playerName);
+            }
+        });
+
+        // Add event listener for 'keydown' on playerNameInput
+        playerNameInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default form submission if input is inside a form
+                addPlayerBtn.click(); // Simulate click on add player button
+            }
+        });
+
+        /**
+         * Removes a player from the game.
+         * @param {string} playerToRemove - The name of the player to remove.
+         */
+        function removePlayer(playerToRemove) {
+            players = players.filter(player => player !== playerToRemove);
+            delete playerSoloStatus[playerToRemove]; // Remove solo status for deleted player
+            renderPlayers();
+            recalculateAllSoloStatus(); // Recalculate solo status after player removal
+            renderGameHistory(); // Re-render history to update total scores if player was involved
+            saveCurrentSession(false); // Save session silently after removing player
+        }
+
+        // --- Player Replacement Modal Logic ---
+
+        /**
+         * Opens the player replacement modal.
+         * @param {string} newPlayerName - The name of the new player to be added.
+         */
+        function openReplacePlayerModal(newPlayerName) {
+            newPlayerNameInput.value = newPlayerName; // Pre-fill new player name
+            playerToReplaceSelect.innerHTML = ''; // Clear previous options
+            players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player;
+                option.textContent = player;
+                playerToReplaceSelect.appendChild(option);
+            });
+            replacePlayerModal.style.display = 'flex';
+        }
+
+        /**
+         * Closes the player replacement modal.
+         */
+        function closeReplacePlayerModal() {
+            replacePlayerModal.style.display = 'none';
+            newPlayerNameInput.value = ''; // Clear input
+            playerToReplaceSelect.innerHTML = ''; // Clear dropdown
+        }
+
+        // Event listeners for replacement modal buttons
+        closeReplaceModalBtn.addEventListener('click', closeReplacePlayerModal);
+        cancelReplaceBtn.addEventListener('click', closeReplacePlayerModal);
+        replacePlayerModal.addEventListener('click', (event) => { // Click outside also cancels
+            if (event.target === replacePlayerModal) {
+                closeReplacePlayerModal();
+            }
+        });
+
+        confirmReplaceBtn.addEventListener('click', () => {
+            const playerToReplace = playerToReplaceSelect.value;
+            const newPlayerName = newPlayerNameInput.value.trim();
+
+            if (!playerToReplace || !newPlayerName) {
+                showMessage("Bitte wähle einen Spieler zum Ersetzen aus und gib einen neuen Namen ein.");
+                return;
+            }
+            if (players.includes(newPlayerName)) {
+                showMessage("Der neue Spielername ist bereits vorhanden. Bitte wähle einen anderen Namen.");
+                return;
+            }
+
+            const indexToReplace = players.indexOf(playerToReplace);
+            if (indexToReplace !== -1) {
+                players[indexToReplace] = newPlayerName; // Replace player name in array
+
+                // Update playerSoloStatus
+                delete playerSoloStatus[playerToReplace]; // Remove old player's solo status
+                initializePlayerSoloStatus(newPlayerName); // Initialize new player's solo status
+
+                // Update game history: replace old player's name with new one in playerScores
+                gameHistory.forEach(game => {
+                    if (game.playerScores[playerToReplace] !== undefined) {
+                        game.playerScores[newPlayerName] = game.playerScores[playerToReplace];
+                        delete game.playerScores[playerToReplace];
+                    }
+                    // Also update winner/loser arrays if the replaced player was in them
+                    game.winner = game.winner.map(p => p === playerToReplace ? newPlayerName : p);
+                    game.loser = game.loser.map(p => p === playerToReplace ? newPlayerName : p);
+                });
+
+                closeReplacePlayerModal();
+                renderPlayers(); // Re-render players to update list and headers
+                recalculateAllSoloStatus(); // Recalculate solo status after replacement
+                renderGameHistory(); // Re-render history to reflect name change and update total scores
+                saveCurrentSession(false); // Save session silently
+                playerNameInput.value = ''; // Clear the main input field
+            } else {
+                showMessage("Fehler: Spieler zum Ersetzen nicht gefunden.");
+            }
+        });
+
+
+        // --- Game Logic ---
+
+        /**
+         * Updates the displayed pot value.
+         */
+        function updatePotDisplay() {
+            // Display currentPot directly as points
+            currentPotDisplay.textContent = `${currentPot}`;
+            if (currentPot <= 0) {
+                currentPotDisplay.classList.remove('text-green-700');
+                currentPotDisplay.classList.add('text-red-700');
+            } else {
+                currentPotDisplay.classList.remove('text-red-700');
+                currentPotDisplay.classList.add('text-green-700');
+            }
+        }
+
+        /**
+         * Renders the game history table.
+         */
+        function renderGameHistory() {
+            gameHistoryTableBody.innerHTML = '';
+            gameHistoryTableFooter.innerHTML = ''; // Clear footer before rendering
+
+            if (gameHistory.length === 0) {
+                noGamesMessage.classList.remove('hidden');
+                gameHistoryContainer.classList.add('hidden'); // Hide table if no games
+            } else {
+                noGamesMessage.classList.add('hidden');
+                gameHistoryContainer.classList.remove('hidden'); // Show table if games exist
+                gameHistory.forEach((game, index) => {
+                    const row = gameHistoryTableBody.insertRow();
+                    row.className = 'hover:bg-gray-50';
+
+                    // Spieltyp
+                    const cellGameType = row.insertCell();
+                    let displayGameType = game.gameType;
+                    if (displayGameType === 'rote_luise') {
+                        cellGameType.textContent = 'Rote Luise';
+                    } else if (displayGameType.includes('_')) {
+                        const parts = displayGameType.split('_');
+                        const mainType = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+                        const subType = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
+                        cellGameType.innerHTML = `${mainType}<br>(${subType})`; // Use innerHTML for <br>
+                    } else {
+                        cellGameType.textContent = displayGameType.charAt(0).toUpperCase() + displayGameType.slice(1);
+                    }
+
+                    // Pot-Änderung (Punkte)
+                    const cellPotChange = row.insertCell();
+                    cellPotChange.textContent = game.potChange;
+                    // Apply dark blue and bold style to the "Pot" (change) column content
+                    cellPotChange.classList.add('text-darkblue-bold');
+
+                    // Details (Ansagen/Sonderpunkte)
+                    const cellDetails = row.insertCell();
+                    const details = [];
+                    if (game.ansagen && game.ansagen.length > 0) {
+                        details.push('Ansagen: ' + game.ansagen.join(', '));
+                    }
+                    if (game.sonderpunkte && game.sonderpunkte.length > 0) {
+                        // Format sonderpunkte for display (remove 'Mueller', 'Gefangen', 'LetztenStich', 'RoteLuise')
+                        const formattedSonderpunkte = game.sonderpunkte.map(sp => {
+                            if (sp === 'KarlchenMueller') return 'Karlchen Müller';
+                            if (sp === 'FuchsGefangen') return '1 Fuchs gefangen'; // Updated formatting
+                            if (sp === 'ZweiFuechseGefangen') return '2 Füchse gefangen'; // New formatting
+                            if (sp === 'FuchsMachtLetztenStich') return 'Fuchs macht letzten Stich';
+                            if (sp === 'GewonnenesSoloRoteLuise') return 'Gewonnenes Solo bei Roter Luise';
+                            return sp;
+                        });
+                        details.push('Sonderpunkte: ' + formattedSonderpunkte.join(', '));
+                    }
+                    if (game.gameType === 'schlanker_martin' && game.noStichMade) {
+                        details.push('Kein Stich gemacht');
+                    }
+                    cellDetails.textContent = details.join('; ');
+                    if (details.length === 0) {
+                        cellDetails.textContent = '-'; // Display hyphen if no details
+                    }
+
+                    // Individual Player Points
+                    players.forEach(player => {
+                        const cellPlayerPoints = row.insertCell();
+                        const playerPoints = game.playerScores[player] || 0; // Get score for this player
+                        cellPlayerPoints.textContent = playerPoints;
+                        cellPlayerPoints.classList.add(playerPoints < 0 ? 'points-negative' : 'points-positive');
+                    });
+
+                    // Pot Stand
+                    const cellPotStand = row.insertCell();
+                    cellPotStand.textContent = game.potAfterGame;
+                    // Apply dark blue and bold style to the "Pot" (stand) column content
+                    cellPotStand.classList.add('text-darkblue-bold');
+
+
+                    // Action (Delete Button)
+                    const cellAction = row.insertCell();
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn btn-danger text-sm px-3 py-1';
+                    deleteBtn.textContent = 'Löschen';
+                    deleteBtn.onclick = () => deleteGameEntry(index);
+                    cellAction.appendChild(deleteBtn);
+                });
+
+                // Add total score row
+                const totalRow = gameHistoryTableFooter.insertRow();
+                totalRow.className = 'bg-gray-200 font-bold text-gray-800 border-t-2 border-gray-400';
+
+                const totalLabelCell = totalRow.insertCell();
+                totalLabelCell.textContent = 'Gesamtstand';
+                totalLabelCell.colSpan = 3; // Span across "Spiel", "Pot (change)", "Details"
+
+                // Calculate cumulative scores
+                const cumulativeScores = {};
+                players.forEach(player => cumulativeScores[player] = -30); // Start at -30 for each player
+
+                gameHistory.forEach(game => {
+                    players.forEach(player => {
+                        cumulativeScores[player] += (game.playerScores[player] || 0);
+                    });
+                });
+
+                players.forEach(player => {
+                    const cellPlayerTotal = totalRow.insertCell();
+                    const totalPoints = cumulativeScores[player];
+                    cellPlayerTotal.textContent = totalPoints;
+                    cellPlayerTotal.classList.add(totalPoints < 0 ? 'points-negative' : 'points-positive');
+                });
+
+                // Empty cells for "Pot (stand)" and "Aktion" in the total row
+                totalRow.insertCell().colSpan = 2; // Span across "Pot (stand)" and "Aktion"
+
+                // Add Ranking row
+                const rankingRow = gameHistoryTableFooter.insertRow();
+                rankingRow.className = 'bg-gray-200 font-bold text-gray-800 ranking-row'; /* Added ranking-row class */
+
+                const rankingLabelCell = rankingRow.insertCell();
+                rankingLabelCell.textContent = 'Ranking';
+                rankingLabelCell.colSpan = 3; // Span across "Spiel", "Pot (change)", "Details"
+
+                // Determine ranks
+                const playerScoresArray = players.map(player => ({
+                    name: player,
+                    score: cumulativeScores[player]
+                }));
+
+                // Sort players by score in descending order
+                playerScoresArray.sort((a, b) => b.score - a.score);
+
+                let currentRank = 1;
+                for (let i = 0; i < playerScoresArray.length; i++) {
+                    if (i > 0 && playerScoresArray[i].score < playerScoresArray[i - 1].score) {
+                        currentRank = i + 1;
+                    }
+                    playerScoresArray[i].rank = currentRank;
+                }
+
+                // Create a map for easy lookup of rank by player name
+                const playerRankMap = {};
+                playerScoresArray.forEach(p => {
+                    playerRankMap[p.name] = p.rank;
+                });
+
+                // Populate ranking cells in the table in the original player order
+                players.forEach(player => {
+                    const cellPlayerRank = rankingRow.insertCell();
+                    const rank = playerRankMap[player];
+                    cellPlayerRank.textContent = `${rank}.`;
+                });
+
+                // Empty cells for "Pot (stand)" and "Aktion" in the ranking row
+                rankingRow.insertCell().colSpan = 2;
+            }
+        }
+
+        /**
+         * Calculates the total points to be deducted from the pot.
+         * @param {string} gameType - Type of game.
+         * @param {Array<string>} winningPlayers - Names of winning players.
+         * @param {Array<string>} ansagen - List of announcements.
+         * @param {Array<string>} sonderpunkte - List of special points.
+         * @returns {number} The total points the pot should decrease.
+         */
+        function calculatePotChange(gameType, winningPlayers, ansagen, sonderpunkte) {
+            let totalPotDeduction = 0;
+
+            if (gameType === 'normal') {
+                let pointsPerWinningPlayer = 1; // Base: Keine 120 = 1 Punkt
+
+                if (ansagen.includes('Re')) pointsPerWinningPlayer += 2;
+                if (ansagen.includes('Kontra')) {
+                    pointsPerWinningPlayer += 2; // Kontra angesagt
+                    pointsPerWinningPlayer += 1; // Gegen die Alten
+                }
+                if (ansagen.includes('Keine 90')) pointsPerWinningPlayer += 2; // 1 for angesagt, 1 for erreicht
+                if (ansagen.includes('Keine 60')) pointsPerWinningPlayer += 2; // 1 angesagt, 1 erreicht
+                if (ansagen.includes('Keine 30')) pointsPerWinningPlayer += 2; // 1 angesagt, 1 erreicht
+                if (ansagen.includes('Keine 0')) pointsPerWinningPlayer += 2; // 1 angesagt, 1 erreicht
+
+                if (sonderpunkte.includes('Doppelkopf')) pointsPerWinningPlayer += 1;
+                if (sonderpunkte.includes('KarlchenMueller')) pointsPerWinningPlayer += 1;
+                if (sonderpunkte.includes('FuchsGefangen')) pointsPerWinningPlayer += 1;
+                if (sonderpunkte.includes('ZweiFuechseGefangen')) pointsPerWinningPlayer += 2;
+                if (sonderpunkte.includes('FuchsMachtLetztenStich')) pointsPerWinningPlayer += 1;
+
+                totalPotDeduction = pointsPerWinningPlayer * winningPlayers.length; // Should be 2 for normal game
+            }
+            // Soli do not affect the pot directly, so totalPotDeduction remains 0 for them.
+            // Any "pot changes" for solos are handled as individual player score transfers.
+
+            return totalPotDeduction;
+        }
+
+        /**
+         * Calculates individual player scores for a game.
+         * @param {string} gameType - Type of game.
+         * @param {Array<string>} winningPlayers - Names of winning players.
+         * @param {Array<string>} losingPlayers - Names of losing players.
+         * @param {Array<string>} ansagen - List of announcements.
+         * @param {Array<string>} sonderpunkte - List of special points.
+         * @param {boolean} noStichMade - True if "Kein Stich gemacht" for Schlanker Martin.
+         * @param {number} points - The points (Augen) achieved by the winning party.
+         * @returns {Object.<string, number>} An object mapping player names to their points for this game.
+         */
+        function calculateIndividualGameScores(gameType, winningPlayers, losingPlayers, ansagen, sonderpunkte, noStichMade, points) {
+            const playerScores = {};
+            players.forEach(p => playerScores[p] = 0); // Initialize all players to 0
+
+            const isWonSolo = winningPlayers.length === 1 && losingPlayers.length === 3;
+            const isLostSolo = losingPlayers.length === 1 && winningPlayers.length === 3;
+
+            if (gameType === 'normal') {
+                let basePoints = 1; // Base: Keine 120 = 1 Punkt
+
+                if (ansagen.includes('Re')) {
+                    basePoints += 2;
+                }
+                if (ansagen.includes('Kontra')) {
+                    basePoints += 2; // Kontra angesagt
+                    basePoints += 1; // Gegen die Alten
+                }
+                if (ansagen.includes('Keine 90')) {
+                    basePoints += 2; // 1 for angesagt, 1 for erreicht
+                }
+                if (ansagen.includes('Keine 60')) {
+                    basePoints += 2; // 1 angesagt, 1 erreicht
+                }
+                if (ansagen.includes('Keine 30')) {
+                    basePoints += 2; // 1 angesagt, 1 erreicht
+                }
+                if (ansagen.includes('Keine 0')) {
+                    basePoints += 2; // 1 angesagt, 1 erreicht
+                }
+
+                if (sonderpunkte.includes('Doppelkopf')) basePoints += 1;
+                if (sonderpunkte.includes('KarlchenMueller')) basePoints += 1;
+                if (sonderpunkte.includes('FuchsGefangen')) basePoints += 1;
+                if (sonderpunkte.includes('ZweiFuechseGefangen')) basePoints += 2;
+                if (sonderpunkte.includes('FuchsMachtLetztenStich')) basePoints += 1;
+
+                winningPlayers.forEach(player => {
+                    playerScores[player] = basePoints;
+                });
+                losingPlayers.forEach(player => {
+                    playerScores[player] = -basePoints;
+                });
+
+            } else if (gameType === 'schlanker_martin') {
+                if (noStichMade) {
+                    const smPointsPerOpponent = 2;
+                    const smSoloistPoints = smPointsPerOpponent * 3;
+
+                    if (isWonSolo) {
+                        playerScores[winningPlayers[0]] = smSoloistPoints;
+                        losingPlayers.forEach(player => playerScores[player] = -smPointsPerOpponent);
+                    } else if (isLostSolo) {
+                        playerScores[losingPlayers[0]] = -smSoloistPoints;
+                        winningPlayers.forEach(player => playerScores[player] = smPointsPerOpponent);
+                    }
+                } else {
+                    // Fallback for Schlanker Martin if "noStichMade" is not checked, treat as a regular solo
+                    let soloBasePoints = 1;
+                    if (ansagen.includes('Re')) soloBasePoints += 2;
+                    if (ansagen.includes('Kontra')) soloBasePoints += 2;
+                    if (ansagen.includes('Keine 90')) soloBasePoints += 2;
+                    if (ansagen.includes('Keine 60')) soloBasePoints += 2;
+                    if (ansagen.includes('Keine 30')) soloBasePoints += 2;
+                    if (ansagen.includes('Keine 0')) soloBasePoints += 2;
+
+                    if (sonderpunkte.includes('Doppelkopf')) soloBasePoints += 1;
+                    if (sonderpunkte.includes('KarlchenMueller')) soloBasePoints += 1;
+                    if (sonderpunkte.includes('FuchsGefangen')) soloBasePoints += 1;
+                    if (sonderpunkte.includes('ZweiFuechseGefangen')) soloBasePoints += 2;
+                    if (sonderpunkte.includes('FuchsMachtLetztenStich')) soloBasePoints += 1;
+
+                    if (isWonSolo) {
+                        playerScores[winningPlayers[0]] = soloBasePoints * 3;
+                        losingPlayers.forEach(player => playerScores[player] = -soloBasePoints);
+                    } else if (isLostSolo) {
+                        playerScores[losingPlayers[0]] = -(soloBasePoints * 3);
+                        winningPlayers.forEach(player => playerScores[player] = soloBasePoints);
+                    }
+                }
+            } else if (gameType === 'rote_luise') {
+                if (isWonSolo) {
+                    let roteLuiseWinPointsPerOpponent = 1; // Base point for winning Rote Luise (Keine 120)
+                    // Ansagen and other Sonderpunkte apply here for a WON Rote Luise
+                    if (ansagen.includes('Re')) roteLuiseWinPointsPerOpponent += 2;
+                    if (ansagen.includes('Kontra')) roteLuiseWinPointsPerOpponent += 2;
+                    if (ansagen.includes('Keine 90')) roteLuiseWinPointsPerOpponent += 2; // 1 for angesagt, 1 for erreicht
+                    if (ansagen.includes('Keine 60')) roteLuiseWinPointsPerOpponent += 2;
+                    if (ansagen.includes('Keine 30')) roteLuiseWinPointsPerOpponent += 2;
+                    if (ansagen.includes('Keine 0')) roteLuiseWinPointsPerOpponent += 2;
+
+                    if (sonderpunkte.includes('Doppelkopf')) roteLuiseWinPointsPerOpponent += 1;
+                    if (sonderpunkte.includes('KarlchenMueller')) roteLuiseWinPointsPerOpponent += 1;
+                    if (sonderpunkte.includes('FuchsGefangen')) roteLuiseWinPointsPerOpponent += 1;
+                    if (sonderpunkte.includes('ZweiFuechseGefangen')) roteLuiseWinPointsPerOpponent += 2;
+                    if (sonderpunkte.includes('FuchsMachtLetztenStich')) roteLuiseWinPointsPerOpponent += 1;
+                    if (sonderpunkte.includes('GewonnenesSoloRoteLuise')) roteLuiseWinPointsPerOpponent += 1; // Specific bonus
+
+                    playerScores[winningPlayers[0]] = roteLuiseWinPointsPerOpponent * 3;
+                    losingPlayers.forEach(player => playerScores[player] = -roteLuiseWinPointsPerOpponent);
+                } else if (isLostSolo) {
+                    // Special scoring for losing Rote Luise based ONLY on "Keine X" checkboxes
+                    let lostRoteLuisePointsPerOpponent = 1; // Base: Keine 120 = 1 Punkt
+
+                    // Only count points from the "Keine X" checkboxes for a lost Rote Luise
+                    if (ansagen.includes('Keine 90')) lostRoteLuisePointsPerOpponent += 1;
+                    if (ansagen.includes('Keine 60')) lostRoteLuisePointsPerOpponent += 1;
+                    if (ansagen.includes('Keine 30')) lostRoteLuisePointsPerOpponent += 1;
+                    if (ansagen.includes('Keine 0')) lostRoteLuisePointsPerOpponent += 1;
+
+                    playerScores[losingPlayers[0]] = -(lostRoteLuisePointsPerOpponent * 3); // Solist verliert dreifach
+                    winningPlayers.forEach(player => playerScores[player] = lostRoteLuisePointsPerOpponent); // Andere gewinnen einfach
+                }
+            }
+            else { // General Solos: Pflichtsolo, Lüstling, Stilles Solo (not Schlanker Martin or Rote Luise)
+                let soloBasePoints = 1; // Base point for winning/losing a solo
+
+                if (ansagen.includes('Re')) soloBasePoints += 2;
+                if (ansagen.includes('Kontra')) soloBasePoints += 2;
+                if (ansagen.includes('Keine 90')) soloBasePoints += 2;
+                if (ansagen.includes('Keine 60')) soloBasePoints += 2;
+                if (ansagen.includes('Keine 30')) soloBasePoints += 2;
+                if (ansagen.includes('Keine 0')) soloBasePoints += 2;
+
+                if (sonderpunkte.includes('Doppelkopf')) soloBasePoints += 1;
+                if (sonderpunkte.includes('KarlchenMueller')) soloBasePoints += 1;
+                if (sonderpunkte.includes('FuchsGefangen')) soloBasePoints += 1;
+                if (sonderpunkte.includes('ZweiFuechseGefangen')) soloBasePoints += 2;
+                if (sonderpunkte.includes('FuchsMachtLetztenStich')) soloBasePoints += 1;
+
+                if (isWonSolo) {
+                    playerScores[winningPlayers[0]] = soloBasePoints * 3;
+                    losingPlayers.forEach(player => playerScores[player] = -soloBasePoints);
+                } else if (isLostSolo) {
+                    playerScores[losingPlayers[0]] = -(soloBasePoints * 3);
+                    winningPlayers.forEach(player => playerScores[player] = soloBasePoints);
+                }
+            }
+            return playerScores;
+        }
+
+
+        /**
+         * Adds a new game entry and updates the pot.
+         */
+        addGameBtn.addEventListener('click', async () => { // Made async for showMessage
+            const gameType = gameTypeSelect.value;
+            // Get selected players from multi-selects
+            const winningPlayers = Array.from(winningPlayerSelect.selectedOptions).map(option => option.value);
+            const losingPlayers = Array.from(losingPlayerSelect.selectedOptions).map(option => option.value);
+            const points = parseInt(pointsInput.value);
+            const noStichMadeSelected = noStichMade.checked; // For Schlanker Martin
+
+            // Collect Ansagen
+            const ansagen = [];
+            // Only collect if not disabled (for Rote Luise lost solo)
+            if (ansageRe.checked && !ansageRe.disabled) ansagen.push('Re');
+            if (ansageKontra.checked && !ansageKontra.disabled) ansagen.push('Kontra');
+            // 'Keine X' ansagen are always collected if checked, as they are relevant for lost Rote Luise
+            if (ansageKeine90.checked) ansagen.push('Keine 90');
+            if (ansageKeine60.checked) ansagen.push('Keine 60');
+            if (ansageKeine30.checked) ansagen.push('Keine 30');
+            if (ansageKeine0.checked) ansagen.push('Keine 0');
+
+            // Collect Sonderpunkte
+            const sonderpunkte = [];
+            if (spDoppelkopf.checked) sonderpunkte.push('Doppelkopf');
+            if (spKarlchenMueller.checked) sonderpunkte.push('KarlchenMueller');
+            if (spGewonnenesSoloRoteLuise.checked && !spGewonnenesSoloRoteLuise.disabled) sonderpunkte.push('GewonnenesSoloRoteLuise'); // Reordered
+            if (spFuchsGefangen.checked) sonderpunkte.push('FuchsGefangen');
+            if (spZweiFuechseGefangen.checked) sonderpunkte.push('ZweiFuechseGefangen'); // New
+            if (spFuchsMachtLetztenStich.checked) sonderpunkte.push('FuchsMachtLetztenStich');
+
+
+            // --- Validation for player counts and overlap ---
+            if (players.length < 4) { // Assuming min 4 players for Doppelkopf
+                await showMessage("Bitte füge mindestens 4 Spieler hinzu, bevor du ein Spiel protokollierst.");
+                return;
+            }
+
+            if (winningPlayers.length === 0 || losingPlayers.length === 0 || isNaN(points) || points < 0) {
+                await showMessage("Bitte alle erforderlichen Felder für das Spielergebnis korrekt ausfüllen.");
+                return;
+            }
+
+            // Check for overlap between winning and losing parties
+            const overlap = winningPlayers.some(player => losingPlayers.includes(player));
+            if (overlap) {
+                await showMessage("Ein Spieler kann nicht gleichzeitig Gewinner und Verlierer sein.");
+                return;
+            }
+
+            if (gameType.startsWith('normal')) { // Check if it's a normal game
+                if (winningPlayers.length !== 2 || losingPlayers.length !== 2) {
+                    await showMessage("Für ein Normalspiel müssen genau 2 Gewinner und 2 Verlierer ausgewählt werden.");
+                    return;
+                }
+            } else if (gameType.startsWith('pflichtsolo') || gameType.startsWith('lustling') || gameType === 'schlanker_martin' || gameType === 'stilles_solo' || gameType === 'rote_luise') {
+                // A solo can be won (1 winner, 3 losers) or lost (3 winners, 1 loser)
+                const isWonSolo = winningPlayers.length === 1 && losingPlayers.length === 3;
+                const isLostSolo = losingPlayers.length === 1 && winningPlayers.length === 3; // Corrected check
+
+                if (!isWonSolo && !isLostSolo) {
+                    await showMessage("Für ein Solo muss entweder 1 Gewinner und 3 Verlierer ODER 3 Gewinner und 1 Verlierer ausgewählt werden.");
+                    return;
+                }
+
+                // Pflichtsolo specific validation
+                if (gameType.startsWith('pflichtsolo')) {
+                    let soloist = null;
+                    if (isWonSolo) {
+                        soloist = winningPlayers[0];
+                    } else if (isLostSolo) {
+                        soloist = losingPlayers[0];
+                    }
+
+                    if (!soloist) {
+                        await showMessage("Fehler: Solist konnte nicht identifiziert werden.");
+                        return;
+                    }
+
+                    const soloCategory = gameType.split('_')[1]; // 'knochenloser', 'bilder', 'farbe'
+
+                    if (!playerSoloStatus[soloist]) {
+                        initializePlayerSoloStatus(soloist);
+                    }
+
+                    if (playerSoloStatus[soloist][soloCategory]) {
+                        await showMessage(`"${soloist}" hat das Pflichtsolo "${soloCategory.charAt(0).toUpperCase() + soloCategory.slice(1)}" bereits gespielt. Bitte wähle ein anderes Pflichtsolo oder einen anderen Spieler.`);
+                        return; // Prevent logging the game
+                    }
+                }
+
+            } else {
+                // Fallback for unknown game types, or if you want to allow flexible team sizes
+                await showMessage("Ungültiger Spieltyp ausgewählt oder falsche Spieleranzahl für den gewählten Typ.");
+                return;
+            }
+
+            // Calculate pot change (only for normal games, 0 for solos)
+            const potChange = calculatePotChange(gameType, winningPlayers, ansagen, sonderpunkte);
+            // Calculate individual player scores
+            const individualPlayerScores = calculateIndividualGameScores(gameType, winningPlayers, losingPlayers, ansagen, sonderpunkte, noStichMadeSelected, points);
+
+
+            currentPot -= potChange; // Deduct points directly from the pot
+
+            gameHistory.push({
+                timestamp: new Date().toISOString(),
+                gameType: gameType,
+                winner: winningPlayers, // Store as array
+                loser: losingPlayers,   // Store as array
+                points: points,
+                ansagen: ansagen,
+                sonderpunkte: sonderpunkte,
+                noStichMade: noStichMadeSelected, // Store for Schlanker Martin
+                potChange: potChange, // Store points change for the pot
+                playerScores: individualPlayerScores, // Store individual player scores
+                potAfterGame: currentPot // Store pot state after this game
+            });
+
+            // Update Pflichtsolo status if it was a Pflichtsolo
+            if (gameType.startsWith('pflichtsolo')) {
+                let soloist = null;
+                const isWonSolo = winningPlayers.length === 1 && losingPlayers.length === 3;
+                const isLostSolo = losingPlayers.length === 1 && winningPlayers.length === 3; // Corrected check
+
+                if (isWonSolo) {
+                    soloist = winningPlayers[0];
+                } else if (isLostSolo) {
+                    soloist = losingPlayers[0];
+                }
+
+                if (soloist) {
+                    const soloCategory = gameType.split('_')[1];
+                    if (playerSoloStatus[soloist]) {
+                        playerSoloStatus[soloist][soloCategory] = true;
+                    }
+                }
+            }
+
+
+            updatePotDisplay();
+            renderPlayers(); // Re-render players to update solo indicators/borders
+            renderGameHistory();
+            saveCurrentSession(false); // Save session silently after adding game
+
+            // Reset input fields
+            winningPlayerSelect.value = '';
+            losingPlayerSelect.value = '';
+            pointsInput.value = '120'; // Default for next game
+            gameTypeSelect.value = 'normal';
+
+            // Reset checkboxes
+            ansageRe.checked = false;
+            ansageKontra.checked = false;
+            ansageKeine90.checked = false;
+            ansageKeine60.checked = false;
+            ansageKeine30.checked = false;
+            ansageKeine0.checked = false;
+            spDoppelkopf.checked = false;
+            spKarlchenMueller.checked = false;
+            spFuchsGefangen.checked = false;
+            spZweiFuechseGefangen.checked = false; // Reset new checkbox
+            spFuchsMachtLetztenStich.checked = false;
+            spGewonnenesSoloRoteLuise.checked = false;
+            noStichMade.checked = false; // Reset Schlanker Martin option
+            schlankerMartinOptions.classList.add('hidden'); // Hide Schlanker Martin option
+
+            updateKeineXCheckboxState(); // Update checkbox state after resetting game type
+        });
+
+        /**
+         * Deletes a game entry from the history and reverts the pot change.
+         * @param {number} index - The index of the game entry to delete.
+         */
+        window.deleteGameEntry = (index) => {
+            if (index >= 0 && index < gameHistory.length) {
+                const deletedGame = gameHistory[index];
+                currentPot += deletedGame.potChange; // Pot-Änderung rückgängig machen (in Punkten)
+                gameHistory.splice(index, 1); // Eintrag entfernen
+
+                // Re-calculate potAfterGame for all subsequent entries
+                // This ensures consistency if an earlier game is deleted
+                let runningPot = 120; // Starting point for recalculation
+                for (let i = 0; i < gameHistory.length; i++) {
+                    if (i === 0) {
+                        gameHistory[i].potAfterGame = 120 - gameHistory[i].potChange;
+                    } else {
+                        gameHistory[i].potAfterGame = gameHistory[i-1].potAfterGame - gameHistory[i].potChange;
+                    }
+                }
+                currentPot = gameHistory.length > 0 ? gameHistory[gameHistory.length - 1].potAfterGame : 120;
+
+                recalculateAllSoloStatus(); // Recalculate solo status after deletion
+
+                updatePotDisplay();
+                renderPlayers(); // Re-render players to update solo indicators/borders
+                renderGameHistory();
+                saveCurrentSession(false); // Save session silently after deleting game
+            }
+        };
+
+        // --- Session Management (Firestore) ---
+
+        /**
+         * Saves the current game session to Firestore.
+         * @param {boolean} showSuccessMessage - Whether to show a success message.
+         */
+        async function saveCurrentSession(showSuccessMessage = true) {
+            if (!currentUserId) {
+                showMessage("Benutzer nicht authentifiziert. Kann Sitzung nicht speichern.");
+                return;
+            }
+            if (!currentSessionId) {
+                // If no session ID, create a new one (or use a default for the first save)
+                currentSessionId = `session_${Date.now()}`;
+            }
+
+            const sessionData = {
+                players: players,
+                pot: currentPot, // Pot is stored in points
+                history: gameHistory,
+                playerSoloStatus: playerSoloStatus, // Save solo status
+                lastUpdated: new Date().toISOString()
+            };
+
+            try {
+                const sessionDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}/doppelkopf_sessions`, currentSessionId);
+                await setDoc(sessionDocRef, sessionData);
+                console.log("Sitzung gespeichert mit ID:", currentSessionId);
+                if (showSuccessMessage) {
+                    showMessage("Sitzung erfolgreich gespeichert!");
+                }
+                await loadAllSessions(); // Reload session list after saving
+            } catch (e) {
+                console.error("Fehler beim Speichern der Sitzung:", e);
+                showMessage("Fehler beim Speichern der Sitzung: " + e.message);
+            }
+        }
+
+        /**
+         * Loads the last active session for the current user.
+         */
+        async function loadLastSession() {
+            if (!currentUserId) return;
+
+            try {
+                const sessionsColRef = collection(db, `artifacts/${appId}/users/${currentUserId}/doppelkopf_sessions`);
+                const q = query(sessionsColRef); // No orderBy to avoid index issues
+                const querySnapshot = await getDocs(q);
+
+                let latestSession = null;
+                let latestTimestamp = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const timestamp = new Date(data.lastUpdated).getTime();
+                    if (timestamp > latestTimestamp) {
+                        latestTimestamp = timestamp;
+                        latestSession = { id: doc.id, ...data };
+                    }
+                });
+
+                if (latestSession) {
+                    loadSession(latestSession.id, latestSession);
+                    // showMessage("Letzte Sitzung geladen: " + latestSession.id); // Removed success message
+                } else {
+                    // showMessage("Keine gespeicherte Sitzung gefunden. Starte eine neue."); // Removed success message
+                    startNewSession(false); // Start a new session silently if no previous one found
+                }
+            } catch (e) {
+                    console.error("Fehler beim Laden der letzten Sitzung:", e);
+                    showMessage("Fehler beim Laden der letzten Sitzung: " + e.message);
+            }
+        }
+
+        /**
+         * Loads a specific session by ID.
+         * @param {string} sessionId - The ID of the session to load.
+         * @param {object} [sessionData] - Optional: The session data if already fetched.
+         */
+        async function loadSession(sessionId, sessionData = null) {
+            if (!currentUserId) {
+                showMessage("Benutzer nicht authentifiziert. Kann Sitzung nicht laden.");
+                return;
+            }
+
+            try {
+                let data;
+                if (sessionData) {
+                    data = sessionData;
+                } else {
+                    const sessionDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}/doppelkopf_sessions`, sessionId);
+                    const docSnap = await getDoc(sessionDocRef);
+                    if (docSnap.exists()) {
+                        data = docSnap.data();
+                    } else {
+                        showMessage("Sitzung nicht gefunden.");
+                        return;
+                    }
+                }
+
+                currentSessionId = sessionId;
+                players = data.players || [];
+                currentPot = data.pot || 0; // Load pot in points
+                gameHistory = data.history || [];
+                playerSoloStatus = data.playerSoloStatus || {}; // Load solo status
+
+                // Ensure all current players have an entry in playerSoloStatus
+                players.forEach(player => {
+                    if (!playerSoloStatus[player]) {
+                        initializePlayerSoloStatus(player);
+                    }
+                });
+                recalculateAllSoloStatus(); // Recalculate to ensure consistency with loaded history
+
+                renderPlayers();
+                updatePotDisplay();
+                renderGameHistory();
+                // showMessage(`Sitzung "${sessionId}" geladen.`); // Removed success message
+                updateKeineXCheckboxState(); // Update checkbox state after loading session
+            } catch (e) {
+                console.error("Fehler beim Laden der Sitzung:", e);
+                showMessage("Fehler beim Laden der Sitzung: " + e.message);
+            }
+        }
+
+        /**
+         * Loads and displays all saved sessions for the current user.
+         */
+        async function loadAllSessions() {
+            if (!currentUserId) return;
+
+            sessionListDiv.innerHTML = '<p class="text-gray-500 text-center">Sitzungen werden geladen...</p>';
+            try {
+                const sessionsColRef = collection(db, `artifacts/${appId}/users/${currentUserId}/doppelkopf_sessions`);
+                const q = query(sessionsColRef);
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    sessionListDiv.innerHTML = '<p class="text-gray-500 text-center">Keine gespeicherten Sitzungen.</p>';
+                    return;
+                }
+
+                sessionListDiv.innerHTML = ''; // Clear loading message
+
+                querySnapshot.forEach((doc) => {
+                    const sessionId = doc.id;
+                    const sessionData = doc.data();
+                    const sessionEntry = document.createElement('div');
+                    sessionEntry.className = 'bg-gray-100 p-3 rounded-lg flex justify-between items-center shadow-sm';
+                    sessionEntry.innerHTML = `
+                        <span class="font-semibold text-gray-700">${sessionId}</span>
+                        <div class="flex gap-2">
+                            <button class="btn btn-secondary text-sm px-3 py-1" onclick="loadSession('${sessionId}')">Laden</button>
+                            <button class="btn btn-danger text-sm px-3 py-1" onclick="deleteSession('${sessionId}')">Löschen</button>
+                        </div>
+                    `;
+                    sessionListDiv.appendChild(sessionEntry);
+                });
+            } catch (e) {
+                console.error("Fehler beim Laden aller Sitzungen:", e);
+                sessionListDiv.innerHTML = '<p class="text-red-500 text-center">Fehler beim Laden der Sitzungen.</p>';
+                showMessage("Fehler beim Laden aller Sitzungen: " + e.message);
+            }
+        }
+
+        /**
+         * Starts a new game session, resetting all data.
+         * @param {boolean} showSuccessMessage - Whether to show a success message.
+         */
+        newSessionBtn.addEventListener('click', async () => {
+            const confirmed = await showMessage("Möchtest du wirklich eine neue Sitzung starten? Alle ungespeicherten Daten gehen verloren.", true);
+            if (confirmed) {
+                startNewSession(true); // Show success message for new session
+            }
+        });
+
+        function startNewSession(showSuccessMessage = true) {
+            currentSessionId = `session_${Date.now()}`; // Generate a new unique ID
+            players = [...defaultPlayers]; // Set default players
+            currentPot = 120; // Reset to initial pot value in points
+            gameHistory = [];
+            playerSoloStatus = {}; // Reset solo status for new session
+            players.forEach(player => initializePlayerSoloStatus(player)); // Initialize solo status for default players
+
+            renderPlayers();
+            updatePotDisplay();
+            renderGameHistory();
+            if (showSuccessMessage) {
+                showMessage("Neue Sitzung gestartet.");
+            }
+            saveCurrentSession(false); // Automatically save the new empty session silently
+            updateKeineXCheckboxState(); // Update checkbox state after starting new session
+        }
+
+        /**
+         * Deletes a session from Firestore.
+         * @param {string} sessionId - The ID of the session to delete.
+         */
+        window.deleteSession = async (sessionId) => {
+            if (!currentUserId) {
+                showMessage("Benutzer nicht authentifiziert. Kann Sitzung nicht löschen.");
+                return;
+            }
+            const confirmed = await showMessage(`Möchtest du die Sitzung "${sessionId}" wirklich löschen?`, true);
+            if (confirmed) {
+                try {
+                    const sessionDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}/doppelkopf_sessions`, sessionId);
+                    await deleteDoc(sessionDocRef);
+                    console.log("Sitzung gelöscht:", sessionId);
+                    // showMessage(`Sitzung "${sessionId}" erfolgreich gelöscht.`); // Removed success message
+                    await loadAllSessions(); // Reload session list
+                    if (currentSessionId === sessionId) {
+                        startNewSession(false); // If current session deleted, start a new one silently
+                    }
+                } catch (e) {
+                    console.error("Fehler beim Löschen der Sitzung:", e);
+                    showMessage("Fehler beim Löschen der Sitzung: " + e.message);
+                }
+            }
+        };
+
+        // --- Event Listener for gameTypeSelect to show/hide Schlanker Martin options ---
+        gameTypeSelect.addEventListener('change', () => {
+            if (gameTypeSelect.value === 'schlanker_martin') {
+                schlankerMartinOptions.classList.remove('hidden');
+            } else {
+                schlankerMartinOptions.classList.add('hidden');
+                noStichMade.checked = false; // Reset checkbox if hidden
+            }
+            updateKeineXCheckboxState(); // Also update Keine X state
+        });
+
+        // Function to update the state of "Keine X" checkboxes based on game type and losing players
+        function updateKeineXCheckboxState() {
+            const gameType = gameTypeSelect.value;
+            const winningPlayers = Array.from(winningPlayerSelect.selectedOptions).map(option => option.value);
+            const losingPlayers = Array.from(losingPlayerSelect.selectedOptions).map(option => option.value);
+
+            const isSoloGame = gameType.includes('solo') || gameType === 'schlanker_martin' || gameType === 'rote_luise' || gameType.startsWith('pflichtsolo') || gameType.startsWith('lustling');
+            const isWonSolo = isSoloGame && winningPlayers.length === 1 && losingPlayers.length === 3;
+            const isLostSolo = isSoloGame && losingPlayers.length === 1 && winningPlayers.length === 3;
+
+            const ansageReLabel = ansageRe.parentElement;
+            const ansageKontraLabel = ansageKontra.parentElement;
+            const spGewonnenesSoloRoteLuiseLabel = spGewonnenesSoloRoteLuise.parentElement;
+
+            const keineXCheckboxes = [ansageKeine90, ansageKeine60, ansageKeine30, ansageKeine0];
+            const keineXLabels = keineXCheckboxes.map(cb => cb.parentElement);
+
+            if (gameType === 'rote_luise') {
+                if (isLostSolo) {
+                    // For a lost Rote Luise solo, "Re", "Kontra", and "Gewonnenes Solo Rote Luise" are irrelevant for scoring.
+                    ansageRe.checked = false; ansageRe.disabled = true; ansageReLabel.classList.add('opacity-50');
+                    ansageKontra.checked = false; ansageKontra.disabled = true; ansageKontraLabel.classList.add('opacity-50');
+                    spGewonnenesSoloRoteLuise.checked = false; spGewonnenesSoloRoteLuise.disabled = true; spGewonnenesSoloRoteLuiseLabel.classList.add('opacity-50');
+
+                    // "Keine X" checkboxes should be enabled as they are used to mark achieved score for a lost solo.
+                    keineXCheckboxes.forEach((checkbox, index) => {
+                        checkbox.disabled = false;
+                        keineXLabels[index].classList.remove('opacity-50');
+                    });
+
+                    // Auto-check "Keine X" based on points input for lost Rote Luise
+                    const points = parseInt(pointsInput.value);
+                    ansageKeine90.checked = (points < 90);
+                    ansageKeine60.checked = (points < 60);
+                    ansageKeine30.checked = (points < 30);
+                    ansageKeine0.checked = (points === 0);
+
+                } else { // Rote Luise, but not a lost solo (e.g., won solo, or invalid player count for solo)
+                    // All ansagen and spGewonnenesSoloRoteLuise are relevant for won Rote Luise.
+                    ansageRe.disabled = false; ansageReLabel.classList.remove('opacity-50');
+                    ansageKontra.disabled = false; ansageKontraLabel.classList.remove('opacity-50');
+                    spGewonnenesSoloRoteLuise.disabled = false; spGewonnenesSoloRoteLuiseLabel.classList.remove('opacity-50');
+
+                    keineXCheckboxes.forEach((checkbox, index) => {
+                        checkbox.disabled = false;
+                        keineXLabels[index].classList.remove('opacity-50');
+                    });
+                    // Reset auto-checked state for Keine X if it's not a lost solo.
+                    keineXCheckboxes.forEach(checkbox => checkbox.checked = false);
+                }
+            } else { // Not Rote Luise
+                ansageRe.disabled = false; ansageReLabel.classList.remove('opacity-50');
+                ansageKontra.disabled = false; ansageKontraLabel.classList.remove('opacity-50');
+                
+                spGewonnenesSoloRoteLuise.checked = false; // Uncheck and disable as it's Rote Luise specific
+                spGewonnenesSoloRoteLuise.disabled = true;
+                spGewonnenesSoloRoteLuiseLabel.classList.add('opacity-50');
+
+                keineXCheckboxes.forEach((checkbox, index) => {
+                    checkbox.disabled = false;
+                    keineXLabels[index].classList.remove('opacity-50');
+                    checkbox.checked = false; // Ensure they are unchecked when switching from Rote Luise
+                });
+            }
+        }
+
+        // Add event listeners to trigger the update
+        gameTypeSelect.addEventListener('change', updateKeineXCheckboxState);
+        winningPlayerSelect.addEventListener('change', updateKeineXCheckboxState);
+        losingPlayerSelect.addEventListener('change', updateKeineXCheckboxState);
+        pointsInput.addEventListener('input', updateKeineXCheckboxState); // Add listener for points input
+
+        // Initial rendering
+        // Ensure default players are set if no session is loaded initially
+        if (players.length === 0) {
+            players = [...defaultPlayers];
+            players.forEach(player => initializePlayerSoloStatus(player));
+        }
+        renderPlayers();
+        updatePotDisplay();
+        renderGameHistory();
+        updateKeineXCheckboxState(); // Call initially on page load
+    </script>
+</body>
+</html>
