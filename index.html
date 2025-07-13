@@ -485,7 +485,15 @@
         // Global variables provided by the Canvas environment
         // These will be undefined on a live GitHub Pages site, so provide fallbacks
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'doppelkopf-tracker-default'; // Default ID for live site
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {}; // Empty object for live site
+        const firebaseConfig = {
+  apiKey: "AIzaSyD7xd92-_1fOhrzotajFebVk73a2rrFgWo",
+  authDomain: "doppelkopf-tracker-db.firebaseapp.com",
+  projectId: "doppelkopf-tracker-db",
+  storageBucket: "doppelkopf-tracker-db.firebasestorage.app",
+  messagingSenderId: "712822307922",
+  appId: "1:712822307922:web:837e7da77e0b2e1102338b",
+  measurementId: "G-XK4ER1LPRF"
+}; // Empty object for live site
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let app;
