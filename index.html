@@ -153,8 +153,6 @@
     .game-history-table {
       width: 100%;
       text-align: center;
-      overflow-x: auto;
-      display: block;
     }
     .game-history-table th, .game-history-table td {
       padding: 8px;
@@ -232,11 +230,10 @@
     input:invalid {
       border-color: #ef4444;
     }
-    /* Style for wrapping text in details column */
-    .details-cell {
+    /* Style for wrapping text in columns */
+    .game-type-cell, .details-cell {
       white-space: normal;
       word-break: break-word;
-      max-width: 150px;
     }
   </style>
 </head>
@@ -536,8 +533,9 @@
 
       // Calculate pot change (for normal games only)
       const calculatePotChange = (gameType, winningPlayers, ansagen, sonderpunkte) => {
+        let basePoints = 0; // Initialize basePoints
         if (gameType !== 'normal') return 0; // Solos don't directly affect the pot
-        let basePoints = 0;
+        
         if (points >= 121 && points <= 150) basePoints = 1;
         else if (points >= 151 && points <= 180) basePoints = 2;
         else if (points >= 181 && points <= 210) basePoints = 3;
@@ -733,8 +731,9 @@
         setPlayers(newPlayers);
         setGameHistory(newGameHistory);
         setPlayerSoloStatus(prev => {
-          const newStatus = { ...prev, [newPlayerName]: { ...initialPlayerSoloStatus } };
+          const newStatus = { ...prev };
           delete newStatus[playerToReplace];
+          newStatus[newPlayerName] = { ...initialPlayerSoloStatus }; // Add new player with initial status
           return newStatus;
         });
         if (currentDealer === playerToReplace) { // Update current dealer if replaced
@@ -865,7 +864,7 @@
           const soloist = winningPlayers.length === 1 ? winningPlayers[0] : calculatedLosingPlayers[0];
           const soloCategory = gameType.split('_')[1];
           if (playerSoloStatus[soloist]?.[soloCategory]) {
-            setModalMessage(`"${soloist}" hat das Pflichtsolo "${soloCategory.charAt(0).toUpperCase() + soloCategory.charAt(0).slice(1)}" bereits gespielt.`);
+            setModalMessage(`"${soloist}" hat das Pflichtsolo "${soloCategory.charAt(0).toUpperCase() + soloCategory.slice(1)}" bereits gespielt.`);
             setShowModal(true);
             return;
           }
@@ -1188,21 +1187,23 @@
                   aria-label="Gewinner auswählen"
                 >
                   {players.map(player => (
-                    <option key={player} value={player}>{player}</option>
+                    <option key={player} value={player} className="font-bold">{player}</option>
                   ))}
                 </select>
               </div>
               <div className="col-span-full">
                 <label className="block text-gray-700 text-base font-bold mb-2">Punkte der Gewinner:</label>
-                <input
-                  type="number"
-                  value={points}
-                  onChange={e => setPoints(Number(e.target.value))}
-                  min="0"
-                  max="240" 
-                  className="border p-2 rounded w-32" 
-                  aria-label="Punkte der Gewinner"
-                />
+                <div className="flex justify-center">
+                  <input
+                    type="number"
+                    value={points}
+                    onChange={e => setPoints(Number(e.target.value))}
+                    min="0"
+                    max="240" 
+                    className="border p-2 rounded w-48"
+                    aria-label="Punkte der Gewinner"
+                  />
+                </div>
               </div>
               <div className="col-span-full">
                 <label className="block text-gray-700 text-base font-bold mb-2">Vorgeführter Spieler (optional):</label>
@@ -1233,7 +1234,7 @@
               </div>
             )}
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Ansagen:</label>
+              <label className="block text-gray-700 text-base font-bold mb-2">Ansagen:</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { key: 'Re', label: 'Re' },
@@ -1274,7 +1275,7 @@
               </div>
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Sonderpunkte:</label>
+              <label className="block text-gray-700 text-base font-bold mb-2">Sonderpunkte:</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
                   { key: 'FuchsGefangenWinner', label: 'Fuchs gefangen (Gewinner)', type: 'number' },
@@ -1341,8 +1342,7 @@
                 <thead>
                   <tr className="bg-gray-200 text-gray-700">
                     <th className="p-2 whitespace-nowrap rounded-tl-lg">Geber</th>
-                    <th className="p-2 whitespace-nowrap">Spiel</th>
-                    <th className="p-2 whitespace-nowrap text-darkblue-bold">Punkte</th>
+                    <th className="p-2 game-type-cell">Spiel</th> {/* Removed whitespace-nowrap */}
                     <th className="p-2 details-cell">Details</th>
                     {players.map(player => (
                       <th key={player} className="p-2 whitespace-nowrap">
@@ -1369,13 +1369,12 @@
                     gameHistory.map((game, index) => (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="p-2 whitespace-nowrap">{game.dealer || '-'}</td>
-                        <td className="p-2 whitespace-nowrap">
+                        <td className="p-2 game-type-cell"> {/* Added game-type-cell class */}
                           {game.gameType === 'rote_luise' ? `Rote Luise (${game.points})` :
                            game.gameType.includes('_') ? 
-                            `${game.gameType.split('_')[0].charAt(0).toUpperCase() + game.gameType.split('_')[0].slice(1)} (${game.points})<br>(${game.gameType.split('_')[1].charAt(0).toUpperCase() + game.gameType.split('_')[1].slice(1)})` : 
+                            `${game.gameType.split('_')[0].charAt(0).toUpperCase() + game.gameType.split('_')[0].slice(1)} (${game.points})<br/>(${game.gameType.split('_')[1].charAt(0).toUpperCase() + game.gameType.split('_')[1].slice(1)})` : 
                             `${game.gameType.charAt(0).toUpperCase() + game.gameType.slice(1)} (${game.points})`}
                         </td>
-                        <td className="p-2 whitespace-nowrap text-darkblue-bold">{game.potChange}</td>
                         <td className="p-2 details-cell">
                           {[...game.ansagen, ...game.sonderpunkte.map(sp => {
                             const [key, value] = sp.split(':');
