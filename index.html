@@ -157,6 +157,11 @@
     .game-history-table th, .game-history-table td {
       padding: 8px;
       border-bottom: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0; /* Added right border */
+    }
+    .game-history-table th:last-child,
+    .game-history-table td:last-child {
+      border-right: none; /* No right border for the last column */
     }
     .game-history-table th {
       font-weight: 600;
@@ -1341,11 +1346,11 @@
               <table className="game-history-table w-full text-left table-auto">
                 <thead>
                   <tr className="bg-gray-200 text-gray-700">
-                    <th className="p-2 whitespace-nowrap rounded-tl-lg">Geber</th>
-                    <th className="p-2 game-type-cell">Spiel</th> {/* Removed whitespace-nowrap */}
-                    <th className="p-2 details-cell">Details</th>
-                    {players.map(player => (
-                      <th key={player} className="p-2 whitespace-nowrap">
+                    <th className="p-2 whitespace-nowrap rounded-tl-lg border-r border-gray-300">Geber</th>
+                    <th className="p-2 game-type-cell border-r border-gray-300">Spiel</th>
+                    <th className="p-2 details-cell border-r border-gray-300">Details</th>
+                    {players.map((player, index) => (
+                      <th key={player} className={`p-2 whitespace-nowrap text-center ${index < players.length - 1 ? 'border-r border-gray-300' : ''}`}> {/* Centered and added border */}
                         <div className={`player-header-content ${playerSoloStatus[player]?.knochenloser && playerSoloStatus[player]?.bilder && playerSoloStatus[player]?.farbe ? 'player-header-completed-solos' : ''}`}>
                           <span className="font-bold">{player}</span>
                           <div className="solo-indicators">
@@ -1368,14 +1373,14 @@
                   ) : (
                     gameHistory.map((game, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="p-2 whitespace-nowrap">{game.dealer || '-'}</td>
-                        <td className="p-2 game-type-cell"> {/* Added game-type-cell class */}
+                        <td className="p-2 whitespace-nowrap border-r border-gray-300">{game.dealer || '-'}</td>
+                        <td className="p-2 game-type-cell border-r border-gray-300">
                           {game.gameType === 'rote_luise' ? `Rote Luise (${game.points})` :
                            game.gameType.includes('_') ? 
                             `${game.gameType.split('_')[0].charAt(0).toUpperCase() + game.gameType.split('_')[0].slice(1)} (${game.points})<br/>(${game.gameType.split('_')[1].charAt(0).toUpperCase() + game.gameType.split('_')[1].slice(1)})` : 
                             `${game.gameType.charAt(0).toUpperCase() + game.gameType.slice(1)} (${game.points})`}
                         </td>
-                        <td className="p-2 details-cell">
+                        <td className="p-2 details-cell border-r border-gray-300">
                           {[...game.ansagen, ...game.sonderpunkte.map(sp => {
                             const [key, value] = sp.split(':');
                             const spLabels = {
@@ -1392,12 +1397,12 @@
                             return `${spLabels[key] || key}: ${value}`;
                           })].join('; ') || '-'}
                         </td>
-                        {players.map(player => (
-                          <td key={player} className={`p-2 ${game.playerScores[player] < 0 ? 'points-negative' : 'points-positive'}`}>
+                        {players.map((player, playerIndex) => (
+                          <td key={player} className={`p-2 text-center ${game.playerScores[player] < 0 ? 'points-negative' : 'points-positive'} ${playerIndex < players.length - 1 ? 'border-r border-gray-300' : ''}`}> {/* Centered and added border */}
                             {game.playerScores[player] || 0}
                           </td>
                         ))}
-                        <td className="p-2 whitespace-nowrap text-darkblue-bold">{game.potAfterGame}</td>
+                        <td className="p-2 whitespace-nowrap text-darkblue-bold border-r border-gray-300">{game.potAfterGame}</td>
                         <td className="p-2 whitespace-nowrap">
                           <button className="btn btn-warning text-sm px-3 py-1" onClick={() => editGame(index)} aria-label={`Spiel ${index + 1} bearbeiten`}>
                             Ändern
@@ -1412,11 +1417,11 @@
                 </tbody>
                 <tfoot>
                   <tr className="bg-gray-200 font-bold text-gray-800 border-t-2 border-gray-400">
-                    <td className="p-2" colSpan="4">Gesamtstand</td>
-                    {players.map(player => {
+                    <td className="p-2 border-r border-gray-300" colSpan="3">Gesamtstand</td> {/* Changed colSpan from 4 to 3 */}
+                    {players.map((player, index) => {
                       const total = gameHistory.reduce((sum, game) => sum + (game.playerScores[player] || 0), -30);
                       return (
-                        <td key={player} className={`p-2 ${total < 0 ? 'points-negative' : 'points-positive'}`}>
+                        <td key={player} className={`p-2 text-center ${total < 0 ? 'points-negative' : 'points-positive'} ${index < players.length - 1 ? 'border-r border-gray-300' : ''}`}> {/* Centered and added border */}
                           {total}
                         </td>
                       );
@@ -1424,14 +1429,14 @@
                     <td colSpan="2"></td>
                   </tr>
                   <tr className="bg-gray-200 font-bold text-gray-800 ranking-row">
-                    <td className="p-2" colSpan="4">Ranking</td>
-                    {players.map(player => {
+                    <td className="p-2 border-r border-gray-300" colSpan="3">Ranking</td> {/* Changed colSpan from 4 to 3 */}
+                    {players.map((player, index) => {
                       const total = gameHistory.reduce((sum, game) => sum + (game.playerScores[player] || 0), -30);
                       const rank = players.map(p => ({
                         name: p,
                         score: gameHistory.reduce((sum, game) => sum + (game.playerScores[p] || 0), -30)
                       })).sort((a, b) => b.score - a.score).findIndex(p => p.name === player) + 1;
-                      return <td key={player} className="p-2">{`${rank}.`}</td>;
+                      return <td key={player} className={`p-2 text-center ${index < players.length - 1 ? 'border-r border-gray-300' : ''}`}>{`${rank}.`}</td>; {/* Centered and added border */}
                     })}
                     <td colSpan="2"></td>
                   </tr>
