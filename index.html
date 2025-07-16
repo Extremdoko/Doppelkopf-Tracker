@@ -8,41 +8,37 @@
   <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.22.9/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, query, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    window.firebase = { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, doc, getDoc, setDoc, collection, query, getDocs, deleteDoc };
-  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Roboto', sans-serif;
       background-color: #f0f2f5;
       display: flex;
       justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
-      padding: 20px;
+      padding: 10px;
       box-sizing: border-box;
     }
     .container {
       background-color: #ffffff;
-      border-radius: 15px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      padding: 20px;
       width: 100%;
       max-width: 1000px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 15px;
     }
     .btn {
-      padding: 10px 20px;
-      border-radius: 10px;
+      padding: 8px 16px;
+      border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease-in-out;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
     }
     .btn-primary {
       background-color: #4CAF50;
@@ -51,7 +47,7 @@
     }
     .btn-primary:hover {
       background-color: #45a049;
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
     .btn-secondary {
       background-color: #007bff;
@@ -60,7 +56,7 @@
     }
     .btn-secondary:hover {
       background-color: #0056b3;
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
     .btn-danger {
       background-color: #dc3545;
@@ -69,7 +65,7 @@
     }
     .btn-danger:hover {
       background-color: #c82333;
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
     .btn-warning {
       background-color: #ffc107;
@@ -78,33 +74,41 @@
     }
     .btn-warning:hover {
       background-color: #e0a800;
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
     input[type="text"], input[type="number"], input[type="time"] {
-      padding: 10px;
+      padding: 8px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
       width: 100%;
       box-sizing: border-box;
     }
     input[type="number"].narrow {
-      width: 4rem;
+      width: 2rem;
+      text-align: center;
+    }
+    input[type="text"].short {
+      width: 2rem;
+      text-align: center;
     }
     select {
-      padding: 10px;
+      padding: 8px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
       width: 100%;
       box-sizing: border-box;
       background-color: white;
     }
     .card {
       background-color: #f9f9f9;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .xlsx-card {
+      padding: 8px;
     }
     .modal {
       display: none;
@@ -123,18 +127,18 @@
     .modal-content {
       background-color: #fefefe;
       margin: auto;
-      padding: 20px;
-      border-radius: 15px;
+      padding: 15px;
+      border-radius: 10px;
       width: 80%;
-      max-width: 500px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       transform: translateY(0);
       transition: transform 0.3s ease-in-out;
     }
     .close-button {
       color: #aaa;
       float: right;
-      font-size: 28px;
+      font-size: 24px;
       font-weight: bold;
       cursor: pointer;
     }
@@ -144,24 +148,26 @@
     .modal-buttons {
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
+      gap: 8px;
+      margin-top: 15px;
     }
     select[multiple] {
-      min-height: 100px;
+      min-height: 80px;
     }
     .game-history-table {
       width: 100%;
       text-align: center;
+      font-size: 0.85rem;
     }
     .game-history-table th, .game-history-table td {
-      padding: 8px;
+      padding: 4px;
       border-bottom: 1px solid #e2e8f0;
-      border-right: 1px solid #e2e8f0; /* Added right border */
+      border-right: 1px solid #e2e8f0;
+      line-height: 1.2;
     }
     .game-history-table th:last-child,
     .game-history-table td:last-child {
-      border-right: none; /* No right border for the last column */
+      border-right: none;
     }
     .game-history-table th {
       font-weight: 600;
@@ -186,11 +192,11 @@
     }
     .solo-indicators {
       display: flex;
-      gap: 4px;
-      margin-top: 4px;
+      gap: 3px;
+      margin-top: 2px;
     }
     .solo-indicator {
-      font-size: 0.75rem;
+      font-size: 0.65rem;
       font-weight: 600;
     }
     .solo-indicator.completed {
@@ -208,7 +214,7 @@
     }
     .player-header-content.player-header-completed-solos {
       border: 2px solid #10b981;
-      border-radius: 8px;
+      border-radius: 6px;
       margin: -2px;
     }
     .game-history-table th {
@@ -219,63 +225,713 @@
     }
     .ranking-row {
       border-top: 2px solid #6b7280;
-      margin-top: 10px;
+      margin-top: 8px;
       background-color: #e5e7eb;
+      font-weight: bold;
     }
     .main-title-container {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
     }
     .main-title-symbol {
-      font-size: 2.5rem;
+      font-size: 2rem;
       color: #1a202c;
     }
     input:invalid {
       border-color: #ef4444;
     }
-    /* Style for wrapping text in columns */
-    .game-type-cell, .details-cell {
+    .game-type-cell, .details-cell, .winners-cell {
       white-space: normal;
       word-break: break-word;
+      max-width: 100px;
+    }
+    .ansagen-container {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+    .ansagen-column {
+      flex: 1;
+    }
+    .sonderpunkte-container {
+      flex: 2;
+      display: flex;
+      gap: 10px;
+    }
+    .sonderpunkte-column {
+      flex: 1;
+    }
+    .divider {
+      border-right: 2px solid #000;
+      margin: 0 10px;
+    }
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #fff;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 6px;
+      padding: 8px;
+    }
+    .dropdown-content.show {
+      display: block;
+    }
+    .dropdown-content label {
+      display: flex;
+      align-items: center;
+      padding: 4px;
+    }
+    .dropdown-content input {
+      margin-right: 8px;
+    }
+    .tooltip {
+      position: relative;
+    }
+    .tooltip:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
   <div id="root"></div>
+  <script type="text/javascript">
+    var gk_isXlsx = false;
+    var gk_xlsxFileLookup = {};
+    var gk_fileData = {};
+    function filledCell(cell) {
+      return cell !== '' && cell != null;
+    }
+    function loadFileData(filename) {
+      if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+        try {
+          var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+          var firstSheetName = workbook.SheetNames[0];
+          var worksheet = workbook.Sheets[firstSheetName];
+          var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+          var filteredData = jsonData.filter(row => row.some(filledCell));
+          var headerRowIndex = filteredData.findIndex((row, index) =>
+            row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+          );
+          if (headerRowIndex === -1 || headerRowIndex > 25) {
+            headerRowIndex = 0;
+          }
+          var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+          csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+          return csv;
+        } catch (e) {
+          console.error(e);
+          return "";
+        }
+      }
+      return gk_fileData[filename] || "";
+    }
+  </script>
   <script type="text/babel">
-    const { useState, useEffect } = React;
-    const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, doc, getDoc, setDoc, collection, query, getDocs, deleteDoc } = window.firebase;
+    const { useState, useEffect, useRef, useCallback } = React;
 
-    // TypeScript-like interfaces
     const initialPlayerSoloStatus = {
       knochenloser: false,
       bilder: false,
       farbe: false,
     };
 
-    const defaultPlayers = ['Krister', 'Christoph', 'Sine', 'Tommy'];
+    const defaultPlayers = [
+      { name: 'Krister', initials: 'K' },
+      { name: 'Christoph', initials: 'C' },
+      { name: 'Sine', initials: 'S' },
+      { name: 'Tommy', initials: 'T' }
+    ];
 
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyD7xd92-_1fOhrzotajFebVk73a2rrFgWo",
-      authDomain: "doppelkopf-tracker-db.firebaseapp.com",
-      projectId: "doppelkopf-tracker-db",
-      storageBucket: "doppelkopf-tracker-db.firebasestorage.app",
-      messagingSenderId: "712822307922",
-      appId: "1:712822307922:web:837e7da77e0b2e1102338b",
-      measurementId: "G-XK4ER1LPRF"
+    const PlayerManagement = ({ players, setPlayers, newPlayerName, setNewPlayerName, newPlayerInitials, setNewPlayerInitials, addPlayer, removePlayer, movePlayer, currentDealer, setShowDealerSelectionModal }) => {
+      return (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-700 mb-2 text-center">Spieler verwalten</h2>
+          <div className="flex flex-col sm:flex-row gap-2 mb-3 justify-center">
+            <input
+              type="text"
+              placeholder="Name"
+              value={newPlayerName}
+              onChange={e => setNewPlayerName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addPlayer(newPlayerName, newPlayerInitials)}
+              className="border p-2 rounded"
+              aria-label="Neuer Spielername"
+            />
+            <input
+              type="text"
+              placeholder="Kürzel"
+              value={newPlayerInitials}
+              onChange={e => setNewPlayerInitials(e.target.value.toUpperCase())}
+              maxLength="1"
+              className="border p-2 rounded short"
+              aria-label="Spieler-Kürzel"
+            />
+            <button className="btn btn-primary" onClick={() => addPlayer(newPlayerName, newPlayerInitials)} aria-label="Spieler hinzufügen">
+              Hinzufügen
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2 justify-center mb-3">
+            {players.map((player, index) => (
+              <span key={player.name} className="bg-blue-200 text-blue-800 px-2 py-1 rounded-full flex items-center gap-2 font-bold">
+                {player.name} ({player.initials})
+                <div className="flex flex-col ml-2">
+                  <button
+                    className="text-blue-600 hover:text-blue-900 text-xs leading-none"
+                    onClick={() => movePlayer(player.name, -1)}
+                    disabled={index === 0}
+                    aria-label={`Spieler ${player.name} nach oben verschieben`}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    className="text-blue-600 hover:text-blue-900 text-xs leading-none"
+                    onClick={() => movePlayer(player.name, 1)}
+                    disabled={index === players.length - 1}
+                    aria-label={`Spieler ${player.name} nach unten verschieben`}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <button
+                  className="text-blue-600 hover:text-blue-900 font-bold"
+                  onClick={() => removePlayer(player.name)}
+                  aria-label={`Spieler ${player.name} entfernen`}
+                >
+                  x
+                </button>
+              </span>
+            ))}
+          </div>
+          <button
+            className="btn btn-secondary w-full"
+            onClick={() => setShowDealerSelectionModal(true)}
+            aria-label="Erster Geber am Abend festlegen"
+          >
+            Erster Geber am Abend festlegen
+          </button>
+          {currentDealer && (
+            <p className="text-center text-gray-700 mt-2">
+              Aktueller Geber: <span className="font-bold">{players.find(p => p.name === currentDealer)?.initials || currentDealer}</span>
+            </p>
+          )}
+        </div>
+      );
+    };
+
+    const PotDisplay = ({ pot }) => {
+      return (
+        <div className="card text-center bg-green-100 p-4 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold text-gray-700">Aktueller Pot</h2>
+          <p className={`text-4xl font-bold ${pot <= 0 ? 'text-red-700' : 'text-green-700'}`}>{pot}</p>
+        </div>
+      );
+    };
+
+    const GameInputForm = ({ gameType, setGameType, winningPlayers, setWinningPlayers, points, setPoints, ansagen, setAnsagen, ansagenPlayers, setAnsagenPlayers, showAnsagenDropdown, setShowAnsagenDropdown, sonderpunkte, setSonderpunkte, noStichMade, setNoStichMade, vorgefuehrtePlayer, setVorgefuehrtePlayer, addGame, players, editingGameIndex }) => {
+      const dropdownRef = useRef(null);
+
+      const toggleAnsagenDropdown = (key) => {
+        setShowAnsagenDropdown(showAnsagenDropdown === key ? null : key);
+      };
+
+      const handleAnsagenPlayerChange = (key, playerName) => {
+        setAnsagenPlayers(prev => ({
+          ...prev,
+          [key]: prev[key].includes(playerName)
+            ? prev[key].filter(p => p !== playerName)
+            : [...prev[key], playerName]
+        }));
+      };
+
+      return (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-700 mb-2 text-center">Spieltyp / Punkte / Ansagen / Sonderpunkte</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-1">Spieltyp:</label>
+              <select
+                value={gameType}
+                onChange={e => setGameType(e.target.value)}
+                className="w-full"
+                aria-label="Spieltyp auswählen"
+              >
+                <option value="normal">Normalspiel</option>
+                <optgroup label="Pflichtsolo">
+                  <option value="pflichtsolo_knochenloser">Knochenloser</option>
+                  <option value="pflichtsolo_bilder">Bilder</option>
+                  <option value="pflichtsolo_farbe">Farbe</option>
+                </optgroup>
+                <optgroup label="Lüstling">
+                  <option value="lustling_knochenloser">Knochenloser</option>
+                  <option value="lustling_bilder">Bilder</option>
+                  <option value="lustling_farbe">Farbe</option>
+                </optgroup>
+                <option value="schlanker_martin">Schlanker Martin</option>
+                <option value="stilles_solo">Stilles Solo</option>
+                <option value="rote_luise">Rote Luise</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-1">Gewinner:</label>
+              <select
+                multiple
+                value={winningPlayers}
+                onChange={e => setWinningPlayers(Array.from(e.target.selectedOptions).map(o => o.value))}
+                className="w-full"
+                aria-label="Gewinner auswählen"
+              >
+                {players.map(player => (
+                  <option key={player.name} value={player.name} className="font-bold">{player.name} ({player.initials})</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-span-full">
+              <label className="block text-gray-700 text-sm font-bold mb-1">Punkte der Gewinner:</label>
+              <div className="flex justify-center">
+                <input
+                  type="number"
+                  value={points}
+                  onChange={e => setPoints(Number(e.target.value))}
+                  min="0"
+                  max="240"
+                  className="border p-2 rounded w-24"
+                  aria-label="Punkte der Gewinner"
+                />
+              </div>
+            </div>
+            <div className="col-span-full">
+              <label className="block text-gray-700 text-sm font-bold mb-1">Vorgeführter Spieler (optional):</label>
+              <select
+                value={vorgefuehrtePlayer || ''}
+                onChange={e => setVorgefuehrtePlayer(e.target.value === '' ? null : e.target.value)}
+                className="w-full"
+                aria-label="Vorgeführter Spieler auswählen"
+              >
+                <option value="">Kein vorgeführter Spieler</option>
+                {players.map(player => (
+                  <option key={player.name} value={player.name}>{player.name} ({player.initials})</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {gameType === 'schlanker_martin' && (
+            <div className="mb-3">
+              <label className="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  checked={noStichMade}
+                  onChange={() => setNoStichMade(!noStichMade)}
+                  className="form-checkbox h-4 w-4 text-red-600 rounded"
+                  aria-label="Kein Stich gemacht bei Schlanker Martin aktivieren"
+                />
+                <span className="ml-2 text-gray-700 text-sm">Kein Stich gemacht (Schlanker Martin)</span>
+              </label>
+            </div>
+          )}
+          <div className="ansagen-container mb-3">
+            <div className="ansagen-column">
+              <label className="block text-gray-700 text-sm font-bold mb-1">Ansagen:</label>
+              <div className="grid grid-cols-1 gap-1">
+                {[
+                  { key: 'GegenDieAlten', label: 'Gegen die Alten' },
+                  { key: 'Re', label: 'Re' },
+                  { key: 'Kontra', label: 'Kontra' },
+                  { key: 'ReKontra', label: 'Re/Kontra (Genscher)' },
+                ].map(({ key, label }) => (
+                  <div key={key} className="dropdown" ref={showAnsagenDropdown === key ? dropdownRef : null}>
+                    <label className={`inline-flex items-center ${gameType === 'rote_luise' && players.filter(p => !winningPlayers.includes(p.name)).length === 1 ? 'opacity-50' : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={ansagen[key]}
+                        onChange={() => {
+                          setAnsagen(prev => ({ ...prev, [key]: !prev[key] }));
+                          toggleAnsagenDropdown(key);
+                        }}
+                        disabled={gameType === 'rote_luise' && players.filter(p => !winningPlayers.includes(p.name)).length === 1}
+                        className="form-checkbox h-4 w-4 text-blue-600 rounded"
+                        aria-label={`Ansage ${label} aktivieren`}
+                        onKeyDown={e => e.key === 'Enter' && setAnsagen(prev => ({ ...prev, [key]: !prev[key] }))}
+                      />
+                      <span className="ml-2 text-gray-700 text-sm">{label}</span>
+                    </label>
+                    {showAnsagenDropdown === key && (
+                      <div className="dropdown-content show">
+                        {players.map(player => (
+                          <label key={player.name} className="inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={ansagenPlayers[key].includes(player.name)}
+                              onChange={() => handleAnsagenPlayerChange(key, player.name)}
+                              className="form-checkbox h-4 w-4 text-blue-600 rounded"
+                              aria-label={`Spieler ${player.name} für Ansage ${label} auswählen`}
+                            />
+                            <span className="ml-2 text-gray-700 text-sm">{player.name} ({player.initials})</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="ansagen-column">
+              <label className="block text-gray-700 text-sm font-bold mb-1">Keine X:</label>
+              <div className="grid grid-cols-1 gap-1">
+                {[
+                  { key: 'Keine90', label: 'Keine 90' },
+                  { key: 'Keine60', label: 'Keine 60' },
+                  { key: 'Keine30', label: 'Keine 30' },
+                  { key: 'Keine0', label: 'Keine 0' },
+                ].map(({ key, label }) => (
+                  <div key={key} className="dropdown" ref={showAnsagenDropdown === key ? dropdownRef : null}>
+                    <label className={`inline-flex items-center ${gameType === 'rote_luise' && players.filter(p => !winningPlayers.includes(p.name)).length === 1 ? 'opacity-50' : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={ansagen[key]}
+                        onChange={() => {
+                          setAnsagen(prev => ({ ...prev, [key]: !prev[key] }));
+                          toggleAnsagenDropdown(key);
+                        }}
+                        disabled={gameType === 'rote_luise' && players.filter(p => !winningPlayers.includes(p.name)).length === 1}
+                        className="form-checkbox h-4 w-4 text-blue-600 rounded"
+                        aria-label={`Ansage ${label} aktivieren`}
+                        onKeyDown={e => e.key === 'Enter' && setAnsagen(prev => ({ ...prev, [key]: !prev[key] }))}
+                      />
+                      <span className="ml-2 text-gray-700 text-sm">{label}</span>
+                    </label>
+                    {showAnsagenDropdown === key && (
+                      <div className="dropdown-content show">
+                        {players.map(player => (
+                          <label key={player.name} className="inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={ansagenPlayers[key].includes(player.name)}
+                              onChange={() => handleAnsagenPlayerChange(key, player.name)}
+                              className="form-checkbox h-4 w-4 text-blue-600 rounded"
+                              aria-label={`Spieler ${player.name} für Ansage ${label} auswählen`}
+                            />
+                            <span className="ml-2 text-gray-700 text-sm">{player.name} ({player.initials})</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="divider"></div>
+            <div className="sonderpunkte-container">
+              <div className="sonderpunkte-column">
+                <label className="block text-gray-700 text-sm font-bold mb-1">Gewinner:</label>
+                {[
+                  { key: 'FuchsGefangenWinner', label: 'Fuchs gefangen' },
+                  { key: 'DoppelkopfWinner', label: 'Doppelkopf' },
+                  { key: 'KarlchenMuellerWinner', label: 'Karlchen Müller' },
+                  { key: 'FuchsMachtLetztenStichWinner', label: 'Fuchs letzter Stich' },
+                ].map(({ key, label }) => (
+                  <label key={key} className="flex items-center gap-2 mb-1">
+                    <input
+                      type="number"
+                      value={sonderpunkte[key]}
+                      onChange={e => setSonderpunkte(prev => ({ ...prev, [key]: Math.min(9, Math.max(0, Number(e.target.value))) }))}
+                      min="0"
+                      max="9"
+                      maxLength="1"
+                      className="border p-1 rounded narrow text-center"
+                      aria-label={label}
+                    />
+                    <span className="text-gray-700 text-sm">{label}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="sonderpunkte-column">
+                <label className="block text-gray-700 text-sm font-bold mb-1">Verlierer:</label>
+                {[
+                  { key: 'FuchsGefangenLoser', label: 'Fuchs gefangen' },
+                  { key: 'DoppelkopfLoser', label: 'Doppelkopf' },
+                  { key: 'KarlchenMuellerLoser', label: 'Karlchen Müller' },
+                  { key: 'FuchsMachtLetztenStichLoser', label: 'Fuchs letzter Stich' },
+                ].map(({ key, label }) => (
+                  <label key={key} className="flex items-center gap-2 mb-1">
+                    <input
+                      type="number"
+                      value={sonderpunkte[key]}
+                      onChange={e => setSonderpunkte(prev => ({ ...prev, [key]: Math.min(9, Math.max(0, Number(e.target.value))) }))}
+                      min="0"
+                      max="9"
+                      maxLength="1"
+                      className="border p-1 rounded narrow text-center"
+                      aria-label={label}
+                    />
+                    <span className="text-gray-700 text-sm">{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="tooltip" data-tip="Schlanker Martin Sonderpunkt verdoppelt die Punkte, wenn kein Stich gemacht wurde">
+              <label className={`inline-flex items-center ${gameType !== 'schlanker_martin' ? 'opacity-50' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={sonderpunkte.SchlankerMartinSonderpunkt}
+                  onChange={() => setSonderpunkte(prev => ({ ...prev, SchlankerMartinSonderpunkt: !prev.SchlankerMartinSonderpunkt }))}
+                  disabled={gameType !== 'schlanker_martin'}
+                  className="form-checkbox h-4 w-4 text-purple-600 rounded"
+                  aria-label="Schlanker Martin Sonderpunkt aktivieren"
+                />
+                <span className="ml-2 text-gray-700 text-sm">Schlanker Martin Sonderpunkt</span>
+              </label>
+            </div>
+          </div>
+          <button className="btn btn-secondary w-full text-base mt-3" onClick={addGame} aria-label="Spiel protokollieren">
+            {editingGameIndex !== null ? 'Änderungen speichern' : 'Protokollieren'}
+          </button>
+        </div>
+      );
+    };
+
+    const GameHistoryTable = ({ gameHistory, players, playerSoloStatus, deleteGame, editGame }) => {
+      const getGameTypeDisplay = (game) => {
+        const isSoloGame = game.gameType.includes('solo') || game.gameType === 'schlanker_martin' || game.gameType === 'rote_luise';
+        if (isSoloGame) {
+          const isWon = game.winner.length === 1;
+          if (game.gameType === 'schlanker_martin') {
+            return `Schlanker Martin (${game.points})${isWon ? ', gewonnen' : ', verloren'}`;
+          }
+          if (game.gameType === 'rote_luise') {
+            return `Rote Luise (${game.points})${isWon ? ', gewonnen' : ', verloren'}`;
+          }
+          if (game.gameType === 'stilles_solo') {
+            return `Stilles Solo (${game.points})${isWon ? ', gewonnen' : ', verloren'}`;
+          }
+          const [type, category] = game.gameType.split('_');
+          const prefix = type === 'pflichtsolo' ? '(P)' : '(L)';
+          const categoryDisplay = category.charAt(0).toUpperCase() + category.slice(1);
+          return `${categoryDisplay} ${prefix} (${game.points})${isWon ? ', gewonnen' : ', verloren'}`;
+        }
+        return `${game.gameType.charAt(0).toUpperCase() + game.gameType.slice(1)} (${game.points})`;
+      };
+
+      const getDetailsDisplay = (game) => {
+        const keineX = game.ansagen.find(a => ['Keine90', 'Keine60', 'Keine30', 'Keine0'].includes(a.type));
+        const ansagenDisplay = game.ansagen
+          .filter(a => !['Keine90', 'Keine60', 'Keine30', 'Keine0'].includes(a.type))
+          .map(a => `${a.type}${a.players.length > 0 ? ` (${a.players.map(p => players.find(pl => pl.name === p)?.initials || p).join(', ')})` : ''}`);
+        const sonderpunkteDisplay = game.sonderpunkte.map(sp => {
+          const [key, value] = sp.split(':');
+          const spLabels = {
+            DoppelkopfWinner: `Doppelkopf (G): ${value}`,
+            DoppelkopfLoser: `Doppelkopf (V): ${value}`,
+            KarlchenMuellerWinner: `Karlchen Müller (G): ${value}`,
+            KarlchenMuellerLoser: `Karlchen Müller (V): ${value}`,
+            FuchsGefangenWinner: `Fuchs gefangen (G): ${value}`,
+            FuchsGefangenLoser: `Fuchs gefangen (V): ${value}`,
+            FuchsMachtLetztenStichWinner: `Fuchs letzter Stich (G): ${value}`,
+            FuchsMachtLetztenStichLoser: `Fuchs letzter Stich (V): ${value}`,
+            SchlankerMartinSonderpunkt: 'Schlanker Martin Sonderpunkt',
+          };
+          return spLabels[key] || `${key}: ${value}`;
+        });
+        const details = [];
+        if (keineX) details.push(`${keineX.type}${keineX.players.length > 0 ? ` (${keineX.players.map(p => players.find(pl => pl.name === p)?.initials || p).join(', ')})` : ''}`);
+        details.push(...ansagenDisplay);
+        details.push(...sonderpunkteDisplay);
+        return details.join('; ') || '-';
+      };
+
+      const totalScores = players.reduce((acc, player) => {
+        const score = gameHistory.reduce((sum, game) => sum + (game.playerScores[player.name] || 0), 0) - 30;
+        return { ...acc, [player.name]: score };
+      }, {});
+
+      const ranking = players
+        .map(player => ({ name: player.name, initials: player.initials, score: totalScores[player.name] }))
+        .sort((a, b) => b.score - a.score)
+        .map((player, index) => ({ ...player, rank: index + 1 }));
+
+      return (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-700 mb-2">Spielverlauf</h2>
+          <div className="overflow-x-auto">
+            <table className="game-history-table w-full text-left table-auto">
+              <thead>
+                <tr className="bg-gray-200 text-gray-700">
+                  <th className="p-2 whitespace-nowrap rounded-tl-lg border-r border-gray-300">Geber</th>
+                  <th className="p-2 game-type-cell border-r border-gray-300">Spiel</th>
+                  <th className="p-2 winners-cell border-r border-gray-300">Gewinner</th>
+                  <th className="p-2 details-cell border-r border-gray-300">Details</th>
+                  {players.map((player, index) => (
+                    <th key={player.name} className={`p-2 whitespace-nowrap text-center ${index < players.length - 1 ? 'border-r border-gray-300' : ''}`}>
+                      <div className={`player-header-content ${Object.values(playerSoloStatus[player.name] || {}).every(status => status) ? 'player-header-completed-solos' : ''}`}>
+                        {player.initials}
+                        <div className="solo-indicators">
+                          <span className={`solo-indicator ${playerSoloStatus[player.name]?.knochenloser ? 'completed' : 'pending'}`}>K</span>
+                          <span className={`solo-indicator ${playerSoloStatus[player.name]?.bilder ? 'completed' : 'pending'}`}>B</span>
+                          <span className={`solo-indicator ${playerSoloStatus[player.name]?.farbe ? 'completed' : 'pending'}`}>F</span>
+                        </div>
+                      </div>
+                    </th>
+                  ))}
+                  <th className="p-2">Aktionen</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gameHistory.map((game, index) => (
+                  <tr key={index}>
+                    <td className="p-2 border-r border-gray-300">{players.find(p => p.name === game.dealer)?.initials || game.dealer}</td>
+                    <td className="p-2 game-type-cell border-r border-gray-300">{getGameTypeDisplay(game)}</td>
+                    <td className="p-2 winners-cell border-r border-gray-300">{game.winner.map(p => players.find(pl => pl.name === p)?.initials || p).join(', ')}</td>
+                    <td className="p-2 details-cell border-r border-gray-300">{getDetailsDisplay(game)}</td>
+                    {players.map(player => (
+                      <td key={player.name} className={`p-2 text-center border-r border-gray-300 ${game.playerScores[player.name] > 0 ? 'points-positive' : game.playerScores[player.name] < 0 ? 'points-negative' : ''}`}>
+                        {game.playerScores[player.name] || 0}
+                      </td>
+                    ))}
+                    <td className="p-2">
+                      <button className="btn btn-warning mr-2" onClick={() => editGame(index)} aria-label={`Spiel ${index + 1} bearbeiten`}>Bearbeiten</button>
+                      <button className="btn btn-danger" onClick={() => deleteGame(index)} aria-label={`Spiel ${index + 1} löschen`}>Löschen</button>
+                    </td>
+                  </tr>
+                ))}
+                <tr className="ranking-row">
+                  <td className="p-2 border-r border-gray-300 font-bold">Stand</td>
+                  <td className="p-2 border-r border-gray-300"></td>
+                  <td className="p-2 border-r border-gray-300"></td>
+                  <td className="p-2 border-r border-gray-300"></td>
+                  {players.map(player => (
+                    <td key={player.name} className={`p-2 text-center border-r border-gray-300 ${totalScores[player.name] > 0 ? 'points-positive' : totalScores[player.name] < 0 ? 'points-negative' : ''}`}>
+                      {totalScores[player.name]}
+                    </td>
+                  ))}
+                  <td className="p-2"></td>
+                </tr>
+                <tr className="ranking-row">
+                  <td className="p-2 border-r border-gray-300 font-bold">Ranking</td>
+                  <td className="p-2 border-r border-gray-300"></td>
+                  <td className="p-2 border-r border-gray-300"></td>
+                  <td className="p-2 border-r border-gray-300"></td>
+                  {players.map(player => {
+                    const playerRanking = ranking.find(r => r.name === player.name);
+                    return (
+                      <td key={player.name} className="p-2 text-center border-r border-gray-300">
+                        {playerRanking ? playerRanking.rank + '.' : '-'}
+                      </td>
+                    );
+                  })}
+                  <td className="p-2"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    };
+
+    const Modal = ({ showModal, setShowModal, modalMessage, modalCallback }) => {
+      return (
+        <div className="modal" style={{ display: showModal ? 'flex' : 'none' }}>
+          <div className="modal-content">
+            <span className="close-button" onClick={() => setShowModal(false)}>×</span>
+            <p>{modalMessage}</p>
+            {modalCallback && (
+              <div className="modal-buttons">
+                <button className="btn btn-primary" onClick={() => { modalCallback(); setShowModal(false); }}>Ja</button>
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Nein</button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const DealerSelectionModal = ({ showDealerSelectionModal, setShowDealerSelectionModal, players, setCurrentDealer }) => {
+      return (
+        <div className="modal" style={{ display: showDealerSelectionModal ? 'flex' : 'none' }}>
+          <div className="modal-content">
+            <span className="close-button" onClick={() => setShowDealerSelectionModal(false)}>×</span>
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">Erster Geber am Abend</h2>
+            <select
+              onChange={e => { setCurrentDealer(e.target.value); setShowDealerSelectionModal(false); }}
+              className="w-full"
+              aria-label="Erster Geber auswählen"
+            >
+              <option value="">Geber auswählen</option>
+              {players.map(player => (
+                <option key={player.name} value={player.name}>{player.name} ({player.initials})</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      );
+    };
+
+    const ReplacePlayerModal = ({ showReplaceModal, setShowReplaceModal, players, playerToReplace, setPlayerToReplace, newPlayerName, setNewPlayerName, newPlayerInitials, setNewPlayerInitials, replacePlayer }) => {
+      return (
+        <div className="modal" style={{ display: showReplaceModal ? 'flex' : 'none' }}>
+          <div className="modal-content">
+            <span className="close-button" onClick={() => setShowReplaceModal(false)}>×</span>
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">Spieler ersetzen</h2>
+            <label className="block text-gray-700 text-sm font-bold mb-1">Zu ersetzender Spieler:</label>
+            <select
+              value={playerToReplace}
+              onChange={e => setPlayerToReplace(e.target.value)}
+              className="w-full mb-3"
+              aria-label="Spieler zum Ersetzen auswählen"
+            >
+              <option value="">Spieler auswählen</option>
+              {players.map(player => (
+                <option key={player.name} value={player.name}>{player.name} ({player.initials})</option>
+              ))}
+            </select>
+            <label className="block text-gray-700 text-sm font-bold mb-1">Neuer Name:</label>
+            <input
+              type="text"
+              value={newPlayerName}
+              onChange={e => setNewPlayerName(e.target.value)}
+              className="border p-2 rounded w-full mb-3"
+              aria-label="Neuer Spielername"
+            />
+            <label className="block text-gray-700 text-sm font-bold mb-1">Neues Kürzel:</label>
+            <input
+              type="text"
+              value={newPlayerInitials}
+              onChange={e => setNewPlayerInitials(e.target.value.toUpperCase())}
+              maxLength="1"
+              className="border p-2 rounded w-full mb-3"
+              aria-label="Neues Spieler-Kürzel"
+            />
+            <div className="modal-buttons">
+              <button className="btn btn-primary" onClick={replacePlayer}>Ersetzen</button>
+              <button className="btn btn-secondary" onClick={() => setShowReplaceModal(false)}>Abbrechen</button>
+            </div>
+          </div>
+        </div>
+      );
     };
 
     const App = () => {
-      const [players, setPlayers] = useState([]);
+      const [players, setPlayers] = useState(defaultPlayers);
       const [pot, setPot] = useState(120);
       const [gameHistory, setGameHistory] = useState([]);
       const [playerSoloStatus, setPlayerSoloStatus] = useState({});
-      const [userId, setUserId] = useState('anonymous-local-user');
-      const [currentSessionId, setCurrentSessionId] = useState(null);
-      const [sessions, setSessions] = useState([]);
       const [gameType, setGameType] = useState('normal');
       const [winningPlayers, setWinningPlayers] = useState([]);
       const [points, setPoints] = useState(120);
@@ -289,15 +945,14 @@
         Keine30: false,
         Keine0: false,
       });
+      const [ansagenPlayers, setAnsagenPlayers] = useState({
+        GegenDieAlten: [], Re: [], Kontra: [], ReKontra: [],
+        Keine90: [], Keine60: [], Keine30: [], Keine0: []
+      });
+      const [showAnsagenDropdown, setShowAnsagenDropdown] = useState(null);
       const [sonderpunkte, setSonderpunkte] = useState({
-        DoppelkopfWinner: 0,
-        DoppelkopfLoser: 0,
-        KarlchenMuellerWinner: 0,
-        KarlchenMuellerLoser: 0,
-        FuchsGefangenWinner: 0,
-        FuchsGefangenLoser: 0,
-        FuchsMachtLetztenStichWinner: 0,
-        FuchsMachtLetztenStichLoser: 0,
+        DoppelkopfWinner: 0, DoppelkopfLoser: 0, KarlchenMuellerWinner: 0, KarlchenMuellerLoser: 0,
+        FuchsGefangenWinner: 0, FuchsGefangenLoser: 0, FuchsMachtLetztenStichWinner: 0, FuchsMachtLetztenStichLoser: 0,
         SchlankerMartinSonderpunkt: false,
       });
       const [noStichMade, setNoStichMade] = useState(false);
@@ -307,240 +962,98 @@
       const [modalCallback, setModalCallback] = useState(null);
       const [showReplaceModal, setShowReplaceModal] = useState(false);
       const [newPlayerName, setNewPlayerName] = useState('');
+      const [newPlayerInitials, setNewPlayerInitials] = useState('');
       const [playerToReplace, setPlayerToReplace] = useState('');
-      const [currentDealer, setCurrentDealer] = useState(null); // New state for current dealer
-      const [vorgefuehrtePlayer, setVorgefuehrtePlayer] = useState(null); // New state for 'vorgeführter Spieler'
-      const [showDealerSelectionModal, setShowDealerSelectionModal] = useState(false); // New state for dealer selection modal
-      
-      // State for Undo/Redo
+      const [currentDealer, setCurrentDealer] = useState(null);
+      const [vorgefuehrtePlayer, setVorgefuehrtePlayer] = useState(null);
+      const [showDealerSelectionModal, setShowDealerSelectionModal] = useState(false);
       const [historyStates, setHistoryStates] = useState([]);
-      const [historyPointer, setHistoryPointer] = useState(-1); // -1 means no state yet
+      const [historyPointer, setHistoryPointer] = useState(-1);
+      const [editingGameIndex, setEditingGameIndex] = useState(null);
+      const [uploadedData, setUploadedData] = useState('');
 
-      const [editingGameIndex, setEditingGameIndex] = useState(null); // State for editing
+      const dropdownRef = useRef(null);
 
-      const [isFirebaseInitialized, setIsFirebaseInitialized] = useState(false);
-      const [dbInstance, setDbInstance] = useState(null);
-      const [authInstance, setAuthInstance] = useState(null);
-
-      // Function to apply a historical state
-      const applyState = (state) => {
-          setPlayers(state.players);
-          setPot(state.pot);
-          setGameHistory(state.gameHistory);
-          setPlayerSoloStatus(state.playerSoloStatus);
-          setCurrentDealer(state.currentDealer || null); // Apply currentDealer from history
-      };
-
-      // Function to save current state to history
-      const saveStateToHistory = (currentState) => {
-          const newHistory = historyStates.slice(0, historyPointer + 1);
-          setHistoryStates([...newHistory, currentState]);
-          setHistoryPointer(newHistory.length);
-      };
-
-      // Firebase setup
       useEffect(() => {
-        let app, db, auth;
-        try {
-          app = initializeApp(firebaseConfig);
-          db = getFirestore(app);
-          auth = getAuth(app);
-          setIsFirebaseInitialized(true);
-          setDbInstance(db);
-          setAuthInstance(auth);
-
-          onAuthStateChanged(auth, async (user) => {
-            if (user) {
-              setUserId(user.uid);
-              await loadLastSession(db, user.uid);
-              await loadAllSessions(db, user.uid);
-            } else {
-              await signInAnonymously(auth);
-            }
-          });
-        } catch (e) {
-          console.warn("Firebase initialization failed. Using local storage.", e);
-          setPlayers(defaultPlayers);
-          defaultPlayers.forEach(p => setPlayerSoloStatus(prev => ({ ...prev, [p]: { ...initialPlayerSoloStatus } })));
-          // Initialize history with default state if Firebase fails
-          saveStateToHistory({ players: defaultPlayers, pot: 120, gameHistory: [], playerSoloStatus: defaultPlayers.reduce((acc, p) => ({ ...acc, [p]: { ...initialPlayerSoloStatus } }), {}), currentDealer: null });
-        }
+        setPlayers(defaultPlayers);
+        defaultPlayers.forEach(p => setPlayerSoloStatus(prev => ({ ...prev, [p.name]: { ...initialPlayerSoloStatus } })));
+        saveStateToHistory({
+          players: defaultPlayers,
+          pot: 120,
+          gameHistory: [],
+          playerSoloStatus: defaultPlayers.reduce((acc, p) => ({ ...acc, [p.name]: { ...initialPlayerSoloStatus } }), {}),
+          currentDealer: null
+        });
       }, []);
 
-      // Effect to save session whenever relevant state changes
       useEffect(() => {
-        if (historyPointer > -1) { // Only save if there's a state to save
-          saveCurrentSession(dbInstance, false);
-        }
-      }, [historyStates, historyPointer, dbInstance]);
+        const handleClickOutside = (event) => {
+          if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            setShowAnsagenDropdown(null);
+          }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+      }, []);
 
-      // Effect to recalculate solo status whenever gameHistory or players change
       useEffect(() => {
-          recalculateSoloStatus();
+        recalculateSoloStatus();
       }, [gameHistory, players]);
 
-
-      // Debounce function
-      const debounce = (fn, wait) => {
-        let timeout;
-        return (...args) => {
-          clearTimeout(timeout);
-          timeout = setTimeout(() => fn(...args), wait);
-        };
-      };
-
-      // Save session
-      const saveCurrentSession = debounce(async (db, showSuccess = false) => {
-        const sessionData = { players, pot, gameHistory, playerSoloStatus, currentDealer, lastUpdated: new Date().toISOString() };
-        if (isFirebaseInitialized && db && userId) {
-          try {
-            const docId = currentSessionId || `session_${Date.now()}`;
-            const sessionDocRef = doc(db, `artifacts/doppelkopf-tracker/users/${userId}/doppelkopf_sessions`, docId);
-            await setDoc(sessionDocRef, sessionData);
-            setCurrentSessionId(docId); // Ensure currentSessionId is set after first save
-            if (showSuccess) {
-              setModalMessage("Sitzung erfolgreich gespeichert!");
-              setShowModal(true);
-            }
-          } catch (e) {
-            setModalMessage(`Fehler beim Speichern: ${e.message}`);
+      useEffect(() => {
+        if (!timeBomb) return;
+        const [hours, minutes] = timeBomb.split(':');
+        const timeBombDate = new Date();
+        timeBombDate.setHours(hours, minutes, 0, 0);
+        const interval = setInterval(() => {
+          if (new Date() >= timeBombDate) {
+            setModalMessage('Zeitzünder erreicht! Nur Pflichtsoli können gespielt werden.');
             setShowModal(true);
+            setGameType('pflichtsolo_knochenloser');
           }
-        } else {
-          localStorage.setItem('doppelkopf_session', JSON.stringify(sessionData));
-          if (showSuccess) {
-            setModalMessage("Sitzung lokal gespeichert!");
-            setShowModal(true);
-          }
+        }, 60000);
+        return () => clearInterval(interval);
+      }, [timeBomb]);
+
+      useEffect(() => {
+        const losingPlayers = players.filter(p => !winningPlayers.includes(p.name)).map(p => p.name);
+        if (gameType === 'rote_luise' && losingPlayers.length === 1) {
+          setAnsagen(prev => ({
+            ...prev,
+            Keine90: points <= 90,
+            Keine60: points <= 60,
+            Keine30: points <= 30,
+            Keine0: points === 0,
+          }));
+        } else if (gameType !== 'rote_luise' && gameType !== 'schlanker_martin') {
+          setAnsagen(prev => ({
+            ...prev,
+            Keine90: false,
+            Keine60: false,
+            Keine30: false,
+            Keine0: false,
+          }));
         }
-      }, 1000);
+      }, [points, winningPlayers, gameType, players]);
 
-      // Load last session
-      const loadLastSession = async (db, userId) => {
-        if (isFirebaseInitialized && db && userId) {
-          try {
-            const sessionsColRef = collection(db, `artifacts/doppelkopf-tracker/users/${userId}/doppelkopf_sessions`);
-            const q = query(sessionsColRef);
-            const querySnapshot = await getDocs(q);
-            let latestSession = null;
-            let latestTimestamp = 0;
-
-            querySnapshot.forEach(doc => {
-              const data = doc.data();
-              const timestamp = new Date(data.lastUpdated).getTime();
-              if (timestamp > latestTimestamp) {
-                latestTimestamp = timestamp;
-                latestSession = { id: doc.id, ...data };
-              }
-            });
-
-            if (latestSession) {
-              setCurrentSessionId(latestSession.id);
-              applyState({
-                  players: latestSession.players || defaultPlayers,
-                  pot: latestSession.pot || 120,
-                  gameHistory: latestSession.gameHistory || [],
-                  playerSoloStatus: latestSession.playerSoloStatus || defaultPlayers.reduce((acc, p) => ({ ...acc, [p]: { ...initialPlayerSoloStatus } }), {}),
-                  currentDealer: latestSession.currentDealer || null
-              });
-              // Initialize history with loaded state
-              setHistoryStates([
-                  { players: latestSession.players || defaultPlayers,
-                    pot: latestSession.pot || 120,
-                    gameHistory: latestSession.gameHistory || [],
-                    playerSoloStatus: latestSession.playerSoloStatus || defaultPlayers.reduce((acc, p) => ({ ...acc, [p]: { ...initialPlayerSoloStatus } }), {}),
-                    currentDealer: latestSession.currentDealer || null
-                  }
-              ]);
-              setHistoryPointer(0);
-            } else {
-              startNewSession(db, false);
-            }
-          } catch (e) {
-            setModalMessage(`Fehler beim Laden der letzten Sitzung: ${e.message}`);
-            setShowModal(true);
-          }
-        } else {
-          const savedSession = localStorage.getItem('doppelkopf_session');
-          if (savedSession) {
-            const data = JSON.parse(savedSession);
-            applyState({
-                players: data.players || defaultPlayers,
-                pot: data.pot || 120,
-                gameHistory: data.gameHistory || [],
-                playerSoloStatus: data.playerSoloStatus || defaultPlayers.reduce((acc, p) => ({ ...acc, [p]: { ...initialPlayerSoloStatus } }), {}),
-                currentDealer: data.currentDealer || null
-            });
-            setHistoryStates([
-                { players: data.players || defaultPlayers,
-                  pot: data.pot || 120,
-                  gameHistory: data.gameHistory || [],
-                  playerSoloStatus: data.playerSoloStatus || defaultPlayers.reduce((acc, p) => ({ ...acc, [p]: { ...initialPlayerSoloStatus } }), {}),
-                  currentDealer: data.currentDealer || null
-                }
-            ]);
-            setHistoryPointer(0);
-          } else {
-            setPlayers(defaultPlayers);
-            defaultPlayers.forEach(p => setPlayerSoloStatus(prev => ({ ...prev, [p]: { ...initialPlayerSoloStatus } })));
-            // Initialize history with default state
-            saveStateToHistory({ players: defaultPlayers, pot: 120, gameHistory: [], playerSoloStatus: defaultPlayers.reduce((acc, p) => ({ ...acc, [p]: { ...initialPlayerSoloStatus } }), {}), currentDealer: null });
-          }
-        }
+      const applyState = (state) => {
+        setPlayers(state.players);
+        setPot(state.pot);
+        setGameHistory(state.gameHistory);
+        setPlayerSoloStatus(state.playerSoloStatus);
+        setCurrentDealer(state.currentDealer || null);
       };
 
-      // Load all sessions
-      const loadAllSessions = async (db, userId) => {
-        if (isFirebaseInitialized && db && userId) {
-          try {
-            const sessionsColRef = collection(db, `artifacts/doppelkopf-tracker/users/${userId}/doppelkopf_sessions`);
-            const q = query(sessionsColRef);
-            const querySnapshot = await getDocs(q);
-            const sessionList = [];
-            querySnapshot.forEach(doc => sessionList.push({ id: doc.id, ...doc.data() }));
-            setSessions(sessionList);
-          } catch (e) {
-            setModalMessage(`Fehler beim Laden aller Sitzungen: ${e.message}`);
-            setShowModal(true);
-          }
-        }
+      const saveStateToHistory = (currentState) => {
+        const newHistory = historyStates.slice(0, historyPointer + 1);
+        setHistoryStates([...newHistory, currentState]);
+        setHistoryPointer(newHistory.length);
       };
 
-      // Start new session
-      const startNewSession = (db, showSuccess = true) => {
-        setCurrentSessionId(`session_${Date.now()}`);
-        const newState = {
-            players: defaultPlayers,
-            pot: 120,
-            gameHistory: [],
-            playerSoloStatus: defaultPlayers.reduce((acc, p) => ({ ...acc, [p]: { ...initialPlayerSoloStatus } }), {}),
-            currentDealer: null // Reset dealer for new session
-        };
-        applyState(newState);
-        setHistoryStates([newState]);
-        setHistoryPointer(0);
-        if (db) saveCurrentSession(db, showSuccess);
-      };
-
-      // Delete session
-      const deleteSession = async (sessionId) => {
-        if (isFirebaseInitialized && dbInstance && userId) {
-          try {
-            await deleteDoc(doc(dbInstance, `artifacts/doppelkopf-tracker/users/${userId}/doppelkopf_sessions`, sessionId));
-            setSessions(sessions.filter(s => s.id !== sessionId));
-            if (currentSessionId === sessionId) startNewSession(dbInstance, false);
-          } catch (e) {
-            setModalMessage(`Fehler beim Löschen der Sitzung: ${e.message}`);
-            setShowModal(true);
-          }
-        }
-      };
-
-      // Calculate pot change (for normal games only)
       const calculatePotChange = (gameType, winningPlayers, ansagen, sonderpunkte) => {
-        let basePoints = 0; // Initialize basePoints
-        if (gameType !== 'normal') return 0; // Solos don't directly affect the pot
-        
+        let basePoints = 0;
+        if (gameType !== 'normal') return 0;
+
         if (points >= 121 && points <= 150) basePoints = 1;
         else if (points >= 151 && points <= 180) basePoints = 2;
         else if (points >= 181 && points <= 210) basePoints = 3;
@@ -552,7 +1065,6 @@
         if (ansagen.Kontra) ansagenPoints += 2;
         if (ansagen.ReKontra) ansagenPoints += 2;
 
-        // "Keine X" points (highest value wins)
         let keineXPoints = 0;
         if (ansagen.Keine0) keineXPoints = 4;
         else if (ansagen.Keine30) keineXPoints = 3;
@@ -561,45 +1073,39 @@
         ansagenPoints += keineXPoints;
 
         let winnerBonus = sonderpunkte.DoppelkopfWinner + sonderpunkte.KarlchenMuellerWinner +
-                          sonderpunkte.FuchsGefangenWinner + sonderpunkte.FuchsMachtLetztenStichWinner;
+                         sonderpunkte.FuchsGefangenWinner + sonderpunkte.FuchsMachtLetztenStichWinner;
         let loserPenalty = sonderpunkte.DoppelkopfLoser + sonderpunkte.KarlchenMuellerLoser +
-                           sonderpunkte.FuchsGefangenLoser + sonderpunkte.FuchsMachtLetztenStichLoser;
+                          sonderpunkte.FuchsGefangenLoser + sonderpunkte.FuchsMachtLetztenStichLoser;
 
-        // For normal game, pot change is based on winners' score minus losers' penalties
         return (basePoints + ansagenPoints + winnerBonus - loserPenalty) * winningPlayers.length;
       };
 
-      // Calculate individual game scores
-      const calculateIndividualGameScores = (gameType, winningPlayers, losingPlayers, ansagen, sonderpunkte, noStichMade, points) => {
-        const playerScores = players.reduce((acc, p) => ({ ...acc, [p]: 0 }), {});
+      const calculateIndividualGameScores = useCallback((gameType, winningPlayers, losingPlayers, ansagen, sonderpunkte, noStichMade, points) => {
+        const playerScores = players.reduce((acc, p) => ({ ...acc, [p.name]: 0 }), {});
         const isSoloGame = gameType.includes('solo') || gameType === 'schlanker_martin' || gameType === 'rote_luise' || gameType.startsWith('pflichtsolo') || gameType.startsWith('lustling');
-        
+
         let basePoints = 0;
         let ansagenPoints = 0;
         let winnerBonus = 0;
-        let loserPenalty = 0; // This will be subtracted from winner's base score
+        let loserPenalty = 0;
 
-        // Base points for Normalspiel based on winner's score range
         if (gameType === 'normal') {
-            if (points >= 121 && points <= 150) basePoints = 1;
-            else if (points >= 151 && points <= 180) basePoints = 2;
-            else if (points >= 181 && points <= 210) basePoints = 3;
-            else if (points >= 211 && points <= 240) basePoints = 4;
-        } else { // Base points for Soli
-            basePoints = 1; // Default for most solos
-            if (gameType === 'rote_luise') {
-                // Rote Luise base points are determined by Keine X only
-                basePoints = 0; // Start with 0, Keine X will add
-            }
+          if (points >= 121 && points <= 150) basePoints = 1;
+          else if (points >= 151 && points <= 180) basePoints = 2;
+          else if (points >= 181 && points <= 210) basePoints = 3;
+          else if (points >= 211 && points <= 240) basePoints = 4;
+        } else {
+          basePoints = 1;
+          if (gameType === 'rote_luise') {
+            basePoints = 0;
+          }
         }
 
-        // Ansagen points
         if (ansagen.GegenDieAlten) ansagenPoints += 1;
         if (ansagen.Re) ansagenPoints += 2;
         if (ansagen.Kontra) ansagenPoints += 2;
         if (ansagen.ReKontra) ansagenPoints += 2;
 
-        // "Keine X" points (highest value wins)
         let keineXPoints = 0;
         if (ansagen.Keine0) keineXPoints = 4;
         else if (ansagen.Keine30) keineXPoints = 3;
@@ -607,56 +1113,51 @@
         else if (ansagen.Keine90) keineXPoints = 1;
         ansagenPoints += keineXPoints;
 
-        // Sonderpunkte for winners
         winnerBonus += sonderpunkte.DoppelkopfWinner;
         winnerBonus += sonderpunkte.KarlchenMuellerWinner;
         winnerBonus += sonderpunkte.FuchsGefangenWinner;
         winnerBonus += sonderpunkte.FuchsMachtLetztenStichWinner;
 
-        // Sonderpunkte for losers (subtracted from winner's score)
         loserPenalty += sonderpunkte.DoppelkopfLoser;
         loserPenalty += sonderpunkte.KarlchenMuellerLoser;
         loserPenalty += sonderpunkte.FuchsGefangenLoser;
         loserPenalty += sonderpunkte.FuchsMachtLetztenStichLoser;
 
-        // Schlanker Martin special case for "no stich made"
         if (gameType === 'schlanker_martin' && noStichMade) {
-            const smPointsPerOpponent = sonderpunkte.SchlankerMartinSonderpunkt ? 2 : 1;
-            playerScores[winningPlayers[0]] = smPointsPerOpponent * 3;
-            losingPlayers.forEach(p => playerScores[p] = -smPointsPerOpponent);
-            return playerScores;
+          const smPointsPerOpponent = sonderpunkte.SchlankerMartinSonderpunkt ? 2 : 1;
+          playerScores[winningPlayers[0]] = smPointsPerOpponent * 3;
+          losingPlayers.forEach(p => playerScores[p] = -smPointsPerOpponent);
+          return playerScores;
         }
 
         const adjustedBaseScore = basePoints + ansagenPoints + winnerBonus - loserPenalty;
 
         if (gameType === 'normal') {
-            winningPlayers.forEach(p => playerScores[p] = adjustedBaseScore);
-            losingPlayers.forEach(p => playerScores[p] = 0); // Losers get 0 points in normal games
+          winningPlayers.forEach(p => playerScores[p] = adjustedBaseScore);
+          losingPlayers.forEach(p => playerScores[p] = 0);
         } else if (isSoloGame) {
-            // For solos, winner gets 3x adjusted score, losers get -1x adjusted score
-            if (winningPlayers.length === 1) { // Won solo
-                playerScores[winningPlayers[0]] = adjustedBaseScore * 3;
-                losingPlayers.forEach(p => playerScores[p] = -adjustedBaseScore);
-            } else if (losingPlayers.length === 1) { // Lost solo (soloist is the only loser)
-                playerScores[losingPlayers[0]] = -adjustedBaseScore * 3;
-                winningPlayers.forEach(p => playerScores[p] = adjustedBaseScore);
-            }
+          if (winningPlayers.length === 1) {
+            playerScores[winningPlayers[0]] = adjustedBaseScore * 3;
+            losingPlayers.forEach(p => playerScores[p] = -adjustedBaseScore);
+          } else if (losingPlayers.length === 1) {
+            playerScores[losingPlayers[0]] = -adjustedBaseScore * 3;
+            winningPlayers.forEach(p => playerScores[p] = adjustedBaseScore);
+          }
         }
         return playerScores;
-      };
+      }, [players]);
 
-      // Recalculate Pflichtsolo status
       const recalculateSoloStatus = () => {
-        const newStatus = players.reduce((acc, p) => ({ ...acc, [p]: { ...initialPlayerSoloStatus } }), {});
+        const newStatus = players.reduce((acc, p) => ({ ...acc, [p.name]: { ...initialPlayerSoloStatus } }), {});
         gameHistory.forEach(game => {
           if (game.gameType.startsWith('pflichtsolo')) {
             const isWonSolo = game.winner.length === 1 && game.loser.length === 3;
             const isLostSolo = game.loser.length === 1 && game.winner.length === 3;
             const soloist = isWonSolo ? game.winner[0] : isLostSolo ? game.loser[0] : null;
-            if (soloist && newStatus[soloist]) { // Check if soloist exists in current players
+            if (soloist && newStatus[soloist]) {
               const soloCategory = game.gameType.split('_')[1];
-              if (newStatus[soloist][soloCategory] !== undefined) { // Check if category exists
-                 newStatus[soloist][soloCategory] = true;
+              if (newStatus[soloist][soloCategory] !== undefined) {
+                newStatus[soloist][soloCategory] = true;
               }
             }
           }
@@ -664,9 +1165,8 @@
         setPlayerSoloStatus(newStatus);
       };
 
-      // Player reordering logic
-      const movePlayer = (playerToMove, direction) => {
-        const currentIndex = players.indexOf(playerToMove);
+      const movePlayer = (playerName, direction) => {
+        const currentIndex = players.findIndex(p => p.name === playerName);
         if (currentIndex === -1) return;
 
         const newIndex = currentIndex + direction;
@@ -678,54 +1178,62 @@
         const [removedPlayer] = newPlayers.splice(currentIndex, 1);
         newPlayers.splice(newIndex, 0, removedPlayer);
         setPlayers(newPlayers);
-        // currentDealer might need to be re-evaluated if the moved player was the dealer
-        if (currentDealer === playerToMove) {
-            // No change needed to currentDealer name, just its position in the array is handled by players state
-        }
       };
 
-      // Add player
-      const addPlayer = (name) => {
-        if (!name) {
-          setModalMessage("Bitte gib einen Spielernamen ein.");
+      const addPlayer = (name, initials) => {
+        if (!name || !initials || initials.length !== 1) {
+          setModalMessage("Bitte gib einen Spielernamen und ein einbuchstabiges Kürzel ein.");
           setShowModal(true);
           return;
         }
-        if (players.includes(name)) {
+        if (players.some(p => p.name === name)) {
           setModalMessage("Dieser Spieler ist bereits hinzugefügt.");
+          setShowModal(true);
+          return;
+        }
+        if (players.some(p => p.initials === initials)) {
+          setModalMessage("Dieses Kürzel ist bereits vergeben.");
           setShowModal(true);
           return;
         }
         if (players.length >= 4) {
           setNewPlayerName(name);
+          setNewPlayerInitials(initials);
           setShowReplaceModal(true);
           return;
         }
-        
+
         saveStateToHistory({ players, pot, gameHistory, playerSoloStatus, currentDealer });
-        setPlayers([...players, name]);
+        const newPlayer = { name, initials };
+        setPlayers([...players, newPlayer]);
         setPlayerSoloStatus(prev => ({ ...prev, [name]: { ...initialPlayerSoloStatus } }));
+        setNewPlayerName('');
+        setNewPlayerInitials('');
       };
 
-      // Replace player
       const replacePlayer = () => {
-        if (!newPlayerName || !playerToReplace) {
-          setModalMessage("Bitte wähle einen Spieler zum Ersetzen und gib einen neuen Namen ein.");
+        if (!newPlayerName || !newPlayerInitials || !playerToReplace || newPlayerInitials.length !== 1) {
+          setModalMessage("Bitte wähle einen Spieler zum Ersetzen und gib einen neuen Namen und ein einbuchstabiges Kürzel ein.");
           setShowModal(true);
           return;
         }
-        if (players.includes(newPlayerName)) {
+        if (players.some(p => p.name === newPlayerName)) {
           setModalMessage("Der neue Spielername ist bereits vorhanden.");
           setShowModal(true);
           return;
         }
+        if (players.some(p => p.initials === newPlayerInitials)) {
+          setModalMessage("Das neue Kürzel ist bereits vergeben.");
+          setShowModal(true);
+          return;
+        }
 
         saveStateToHistory({ players, pot, gameHistory, playerSoloStatus, currentDealer });
 
-        const newPlayers = players.map(p => p === playerToReplace ? newPlayerName : p);
+        const newPlayers = players.map(p => p.name === playerToReplace ? { name: newPlayerName, initials: newPlayerInitials } : p);
         const newGameHistory = gameHistory.map(game => ({
           ...game,
-          dealer: game.dealer === playerToReplace ? newPlayerName : game.dealer, // Update dealer in history
+          dealer: game.dealer === playerToReplace ? newPlayerName : game.dealer,
           winner: game.winner.map(p => p === playerToReplace ? newPlayerName : p),
           loser: game.loser.map(p => p === playerToReplace ? newPlayerName : p),
           playerScores: Object.keys(game.playerScores).reduce((acc, p) => ({
@@ -738,141 +1246,106 @@
         setPlayerSoloStatus(prev => {
           const newStatus = { ...prev };
           delete newStatus[playerToReplace];
-          newStatus[newPlayerName] = { ...initialPlayerSoloStatus }; // Add new player with initial status
+          newStatus[newPlayerName] = { ...initialPlayerSoloStatus };
           return newStatus;
         });
-        if (currentDealer === playerToReplace) { // Update current dealer if replaced
-            setCurrentDealer(newPlayerName);
+        if (currentDealer === playerToReplace) {
+          setCurrentDealer(newPlayerName);
         }
         setShowReplaceModal(false);
         setNewPlayerName('');
+        setNewPlayerInitials('');
         setPlayerToReplace('');
       };
 
-      // Remove player
-      const removePlayer = (playerToRemove) => {
-        setModalMessage(`Möchtest du Spieler "${playerToRemove}" wirklich entfernen? Alle zugehörigen Spieldaten bleiben erhalten, aber der Spieler wird nicht mehr in der Liste angezeigt.`);
+      const removePlayer = (playerName) => {
+        setModalMessage(`Möchtest du Spieler "${playerName}" wirklich entfernen? Alle zugehörigen Spieldaten bleiben erhalten, aber der Spieler wird nicht mehr in der Liste angezeigt.`);
         setModalCallback(() => () => {
-            saveStateToHistory({ players, pot, gameHistory, playerSoloStatus, currentDealer });
-
-            const updatedPlayers = players.filter(p => p !== playerToRemove);
-            // No need to filter gameHistory, just the player list and solo status
-            setPlayers(updatedPlayers);
-            setPlayerSoloStatus(prev => {
-                const newStatus = { ...prev };
-                delete newStatus[playerToRemove];
-                return newStatus;
-            });
-            if (currentDealer === playerToRemove) { // If removed player was current dealer, reset it
-                setCurrentDealer(null);
-            }
-            // Recalculate solo status is handled by useEffect
+          saveStateToHistory({ players, pot, gameHistory, playerSoloStatus, currentDealer });
+          const updatedPlayers = players.filter(p => p.name !== playerName);
+          setPlayers(updatedPlayers);
+          setPlayerSoloStatus(prev => {
+            const newStatus = { ...prev };
+            delete newStatus[playerName];
+            return newStatus;
+          });
+          if (currentDealer === playerName) {
+            setCurrentDealer(null);
+          }
         });
         setShowModal(true);
       };
 
-      // Calculate next dealer based on rules
       const calculateNextDealer = (lastDealer, playersList, gameType, winningPlayers, losingPlayers, vorgefuehrtePlayer) => {
         if (!lastDealer || playersList.length === 0) return null;
 
         const isSoloGame = gameType.includes('solo') || gameType === 'schlanker_martin' || gameType === 'rote_luise' || gameType.startsWith('pflichtsolo') || gameType.startsWith('lustling');
 
-        // If it was a solo game, the dealer does not change
         if (isSoloGame) {
-            return lastDealer;
+          return lastDealer;
         }
 
-        // For normal games, dealer rotates
-        let lastDealerIndex = playersList.indexOf(lastDealer);
+        let lastDealerIndex = playersList.findIndex(p => p.name === lastDealer);
         let nextDealerIndex = (lastDealerIndex + 1) % playersList.length;
-        let nextDealer = playersList[nextDealerIndex];
+        let nextDealer = playersList[nextDealerIndex].name;
 
-        // "Vorgeführte" logic: skip if the next dealer is the 'vorgeführter Spieler'
-        // A player is 'vorgeführt' if they are the single loser of a normal game (i.e. all other players are winners).
-        // This is a common rule in Doppelkopf, where a player who gets 'vorgeführt' (e.g., plays a bad hand alone)
-        // is skipped in the dealing order.
         const isVorgefuehrtInLastGame = gameType === 'normal' && losingPlayers.length === 1 && winningPlayers.length === playersList.length - 1 && losingPlayers[0] === nextDealer;
 
         if (isVorgefuehrtInLastGame) {
-            nextDealerIndex = (nextDealerIndex + 1) % playersList.length;
-            nextDealer = playersList[nextDealerIndex];
+          nextDealerIndex = (nextDealerIndex + 1) % playersList.length;
+          nextDealer = playersList[nextDealerIndex].name;
         }
-        
-        // If a specific 'vorgefuehrtePlayer' was selected in the form for the *current* game being logged
-        // and that player is the calculated next dealer, skip them.
+
         if (vorgefuehrtePlayer && nextDealer === vorgefuehrtePlayer) {
-            nextDealerIndex = (nextDealerIndex + 1) % playersList.length;
-            nextDealer = playersList[nextDealerIndex];
+          nextDealerIndex = (nextDealerIndex + 1) % playersList.length;
+          nextDealer = playersList[nextDealerIndex].name;
         }
 
         return nextDealer;
       };
 
-      // Add/Edit game
       const addGame = () => {
-        if (players.length < 4) {
-          setModalMessage("Mindestens 4 Spieler erforderlich.");
-          setShowModal(true);
-          return;
-        }
-        if (!currentDealer) {
-            setModalMessage("Bitte wähle zuerst den 'Ersten Geber am Abend' aus.");
-            setShowModal(true);
-            return;
-        }
-        if (winningPlayers.length === 0 || isNaN(points) || points < 0) {
-          setModalMessage("Bitte Gewinner und Punkte korrekt ausfüllen.");
-          setShowModal(true);
-          return;
-        }
-        if (gameType === 'normal' && winningPlayers.length !== 2) {
-          setModalMessage("Normalspiel erfordert genau 2 Gewinner.");
-          setShowModal(true);
-          return;
-        }
-        // Determine losing players based on selected winners and total players
-        let calculatedLosingPlayers = players.filter(p => !winningPlayers.includes(p));
-
+        const errors = [];
+        let calculatedLosingPlayers = players.filter(p => !winningPlayers.includes(p.name)).map(p => p.name);
         const isSoloGame = gameType.includes('solo') || gameType === 'schlanker_martin' || gameType === 'rote_luise' || gameType.startsWith('pflichtsolo') || gameType.startsWith('lustling');
 
+        if (players.length < 4) errors.push("Mindestens 4 Spieler sind erforderlich.");
+        if (!currentDealer) errors.push("Bitte wähle zuerst den 'Ersten Geber am Abend' aus.");
+        if (winningPlayers.length === 0) errors.push("Bitte wähle mindestens einen Gewinner aus.");
+        if (isNaN(points) || points < 0 || points > 240) errors.push("Punkte müssen zwischen 0 und 240 liegen.");
+        if (gameType === 'normal' && winningPlayers.length !== 2) errors.push("Normalspiel erfordert genau 2 Gewinner.");
         if (isSoloGame) {
-            if (winningPlayers.length === 1) { // Soloist won
-                calculatedLosingPlayers = players.filter(p => p !== winningPlayers[0]);
-            } else if (winningPlayers.length === 3) { // Soloist lost
-                calculatedLosingPlayers = players.filter(p => !winningPlayers.includes(p));
-                if (calculatedLosingPlayers.length !== 1) {
-                    setModalMessage("Für ein verlorenes Solo müssen genau 3 Gewinner ausgewählt werden, um den einen Verlierer zu bestimmen.");
-                    setShowModal(true);
-                    return;
-                }
-            } else {
-                setModalMessage("Für ein Solo muss entweder genau 1 Gewinner (Soloist gewinnt) oder genau 3 Gewinner (Soloist verliert) ausgewählt werden.");
-                setShowModal(true);
-                return;
+          if (winningPlayers.length === 1) {
+            calculatedLosingPlayers = players.filter(p => p.name !== winningPlayers[0]).map(p => p.name);
+          } else if (winningPlayers.length === 3) {
+            calculatedLosingPlayers = players.filter(p => !winningPlayers.includes(p.name)).map(p => p.name);
+            if (calculatedLosingPlayers.length !== 1) {
+              errors.push("Für ein verlorenes Solo müssen genau 3 Gewinner ausgewählt werden, um den einen Verlierer zu bestimmen.");
             }
+          } else {
+            errors.push("Für ein Solo muss entweder genau 1 Gewinner (Soloist gewinnt) oder genau 3 Gewinner (Soloist verliert) ausgewählt werden.");
+          }
         }
-
         if (gameType === 'schlanker_martin' && noStichMade && points !== 0) {
-          setModalMessage("Für 'Kein Stich gemacht' bei Schlanker Martin müssen die Punkte 0 sein.");
-          setShowModal(true);
-          return;
+          errors.push("Für 'Kein Stich gemacht' bei Schlanker Martin müssen die Punkte 0 sein.");
         }
         if (pot <= 0 && !gameType.startsWith('pflichtsolo')) {
-          const incompletePlayers = players.filter(p => !playerSoloStatus[p].knochenloser || !playerSoloStatus[p].bilder || !playerSoloStatus[p].farbe);
+          const incompletePlayers = players.filter(p => !playerSoloStatus[p.name].knochenloser || !playerSoloStatus[p.name].bilder || !playerSoloStatus[p.name].farbe);
           if (incompletePlayers.length > 0) {
-            setModalMessage(`Pot leer! Nur Pflichtsoli dürfen gespielt werden: ${incompletePlayers.join(', ')}`);
-            setShowModal(true);
-            return;
+            errors.push(`Pot leer! Nur Pflichtsoli dürfen gespielt werden: ${incompletePlayers.map(p => p.initials).join(', ')}`);
           }
         }
         if (gameType.startsWith('pflichtsolo')) {
           const soloist = winningPlayers.length === 1 ? winningPlayers[0] : calculatedLosingPlayers[0];
           const soloCategory = gameType.split('_')[1];
           if (playerSoloStatus[soloist]?.[soloCategory]) {
-            setModalMessage(`"${soloist}" hat das Pflichtsolo "${soloCategory.charAt(0).toUpperCase() + soloCategory.slice(1)}" bereits gespielt.`);
-            setShowModal(true);
-            return;
+            errors.push(`"${soloist}" hat das Pflichtsolo "${soloCategory.charAt(0).toUpperCase() + soloCategory.slice(1)}" bereits gespielt.`);
           }
+        }
+        if (errors.length > 0) {
+          setModalMessage(errors.join(' '));
+          setShowModal(true);
+          return;
         }
 
         const potChange = calculatePotChange(gameType, winningPlayers, ansagen, sonderpunkte);
@@ -880,12 +1353,15 @@
 
         const newGame = {
           timestamp: new Date().toISOString(),
-          dealer: currentDealer, // Dealer for THIS game
+          dealer: currentDealer,
           gameType,
           winner: winningPlayers,
           loser: calculatedLosingPlayers,
-          points, // Punkte der Gewinner
-          ansagen: Object.keys(ansagen).filter(key => ansagen[key]),
+          points,
+          ansagen: Object.keys(ansagen).filter(key => ansagen[key]).map(key => ({
+            type: key,
+            players: ansagenPlayers[key]
+          })),
           sonderpunkte: Object.entries(sonderpunkte)
             .filter(([key, value]) => value > 0 || (key === 'SchlankerMartinSonderpunkt' && value))
             .map(([key, value]) => `${key}:${value}`),
@@ -901,723 +1377,25 @@
         let newPotValue;
 
         if (editingGameIndex !== null) {
-            updatedGameHistory = [...gameHistory];
-            updatedGameHistory[editingGameIndex] = newGame;
-            setGameHistory(updatedGameHistory);
-            // Recalculate pot from scratch based on new history
-            newPotValue = 120;
-            updatedGameHistory.forEach(game => {
-                newPotValue -= game.potChange;
-            });
-            setPot(newPotValue);
-            setEditingGameIndex(null);
+          updatedGameHistory = [...gameHistory];
+          updatedGameHistory[editingGameIndex] = newGame;
+          setGameHistory(updatedGameHistory);
+          newPotValue = 120;
+          updatedGameHistory.forEach(game => {
+            newPotValue -= game.potChange;
+          });
+          setPot(newPotValue);
+          setEditingGameIndex(null);
         } else {
-            updatedGameHistory = [...gameHistory, newGame];
-            setGameHistory(updatedGameHistory);
-            newPotValue = pot - potChange;
-            setPot(newPotValue);
+          updatedGameHistory = [...gameHistory, newGame];
+          setGameHistory(updatedGameHistory);
+          newPotValue = pot - potChange;
+          setPot(newPotValue);
         }
 
-        // Determine next dealer AFTER this game is logged
         const nextDealer = calculateNextDealer(currentDealer, players, gameType, winningPlayers, calculatedLosingPlayers, vorgefuehrtePlayer);
         setCurrentDealer(nextDealer);
 
-        // recalculateSoloStatus is now handled by useEffect
-        // reset inputs
-        resetGameInputForm();
-      };
-
-      // Delete game
-      const deleteGame = (index) => {
-        setModalMessage("Möchtest du dieses Spiel wirklich löschen? Dies kann nicht rückgängig gemacht werden.");
-        setModalCallback(() => () => {
-            saveStateToHistory({ players, pot, gameHistory, playerSoloStatus, currentDealer });
-            const deletedGame = gameHistory[index];
-            const updatedGameHistory = gameHistory.filter((_, i) => i !== index);
-            setGameHistory(updatedGameHistory);
-            // Recalculate pot from scratch based on new history
-            let recalculatedPot = 120;
-            updatedGameHistory.forEach(game => {
-                recalculatedPot -= game.potChange;
-            });
-            setPot(recalculatedPot);
-            // recalculateSoloStatus is now handled by useEffect
-        });
-        setShowModal(true);
-      };
-
-      // Edit game (populate form)
-      const editGame = (index) => {
-        const gameToEdit = gameHistory[index];
-        setEditingGameIndex(index);
-        
-        setGameType(gameToEdit.gameType);
-        setWinningPlayers(gameToEdit.winner);
-        setPoints(gameToEdit.points);
-        setVorgefuehrtePlayer(gameToEdit.vorgefuehrtePlayer || null); // Load vorgefuehrtePlayer
-
-        // Reconstruct ansagen object from array
-        const newAnsagen = {
-            GegenDieAlten: gameToEdit.ansagen.includes('GegenDieAlten'),
-            Re: gameToEdit.ansagen.includes('Re'),
-            Kontra: gameToEdit.ansagen.includes('Kontra'),
-            ReKontra: gameToEdit.ansagen.includes('ReKontra'),
-            Keine90: gameToEdit.ansagen.includes('Keine90'),
-            Keine60: gameToEdit.ansagen.includes('Keine60'),
-            Keine30: gameToEdit.ansagen.includes('Keine30'),
-            Keine0: gameToEdit.ansagen.includes('Keine0'),
-        };
-        setAnsagen(newAnsagen);
-
-        // Reconstruct sonderpunkte object from array
-        const newSonderpunkte = {
-            DoppelkopfWinner: 0, DoppelkopfLoser: 0, KarlchenMuellerWinner: 0, KarlchenMuellerLoser: 0,
-            FuchsGefangenWinner: 0, FuchsGefangenLoser: 0, FuchsMachtLetztenStichWinner: 0, FuchsMachtLetztenStichLoser: 0,
-            SchlankerMartinSonderpunkt: false,
-        };
-        gameToEdit.sonderpunkte.forEach(spString => {
-            const [key, value] = spString.split(':');
-            if (key === 'SchlankerMartinSonderpunkt') {
-                newSonderpunkte[key] = true;
-            } else if (newSonderpunkte.hasOwnProperty(key)) { // Only set if key exists
-                newSonderpunkte[key] = parseInt(value);
-            }
-        });
-        setSonderpunkte(newSonderpunkte);
-        setNoStichMade(gameToEdit.noStichMade || false); 
-      };
-
-      // Reset game input form fields
-      const resetGameInputForm = () => {
         setGameType('normal');
         setWinningPlayers([]);
-        setPoints(120);
-        setAnsagen({
-          GegenDieAlten: false, Re: false, Kontra: false, ReKontra: false,
-          Keine90: false, Keine60: false, Keine30: false, Keine0: false
-        });
-        setSonderpunkte({
-          DoppelkopfWinner: 0, DoppelkopfLoser: 0, KarlchenMuellerWinner: 0, KarlchenMuellerLoser: 0,
-          FuchsGefangenWinner: 0, FuchsGefangenLoser: 0, FuchsMachtLetztenStichWinner: 0, FuchsMachtLetztenStichLoser: 0,
-          SchlankerMartinSonderpunkt: false,
-        });
-        setNoStichMade(false);
-        setVorgefuehrtePlayer(null); // Reset vorgefuehrte player
-        setEditingGameIndex(null); // Ensure editing state is reset
-      };
-
-
-      // Undo action
-      const undo = () => {
-          if (historyPointer > 0) {
-              const newPointer = historyPointer - 1;
-              applyState(historyStates[newPointer]);
-              setHistoryPointer(newPointer);
-          }
-      };
-
-      // Redo action
-      const redo = () => {
-          if (historyPointer < historyStates.length - 1) {
-              const newPointer = historyPointer + 1;
-              applyState(historyStates[newPointer]);
-              setHistoryPointer(newPointer);
-          }
-      };
-
-      // Time bomb check
-      useEffect(() => {
-        if (!timeBomb) return;
-        const [hours, minutes] = timeBomb.split(':');
-        const timeBombDate = new Date();
-        timeBombDate.setHours(hours, minutes, 0, 0);
-        const interval = setInterval(() => {
-          if (new Date() >= timeBombDate) {
-            setModalMessage('Zeitzünder erreicht! Nur Pflichtsoli können gespielt werden.');
-            setShowModal(true);
-            setGameType('pflichtsolo_knochenloser'); // Force Pflichtsolo
-          }
-        }, 60000); // Check every minute
-        return () => clearInterval(interval);
-      }, [timeBomb]);
-
-      // Auto-update Keine X checkboxes for Rote Luise lost solo
-      useEffect(() => {
-        const losingPlayers = players.filter(p => !winningPlayers.includes(p));
-        if (gameType === 'rote_luise' && losingPlayers.length === 1) { // If a solo is lost (3 winners, 1 loser)
-          setAnsagen(prev => ({
-            ...prev,
-            Keine90: points < 90,
-            Keine60: points < 60,
-            Keine30: points < 30,
-            Keine0: points === 0,
-          }));
-        } else if (gameType !== 'rote_luise' && gameType !== 'schlanker_martin') { // Only reset if not Rote Luise or Schlanker Martin
-            setAnsagen(prev => ({
-                ...prev,
-                Keine90: false,
-                Keine60: false,
-                Keine30: false,
-                Keine0: false,
-            }));
-        }
-      }, [points, winningPlayers, gameType, players]);
-
-
-      // Render UI
-      return (
-        <div className="container">
-          <div className="main-title-container mb-4">
-            <span className="main-title-symbol">♠</span>
-            <h1 className="text-3xl font-bold text-center text-darkblue-bold m-0">Extrem-Doppelkopf-Tracker V3</h1>
-            <span className="main-title-symbol">♥</span>
-          </div>
-
-          {/* Pot Display */}
-          <div className="card text-center bg-green-100 p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold text-gray-700">Aktueller Pot</h2>
-            <p className={`text-5xl font-bold ${pot <= 0 ? 'text-red-700' : 'text-green-700'}`}>{pot}</p>
-          </div>
-
-          {/* Player Management */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-700 mb-3 text-center">Spieler verwalten</h2>
-            <div className="flex flex-col sm:flex-row gap-3 mb-4 justify-center">
-              <input
-                type="text"
-                placeholder="Spielername"
-                value={newPlayerName}
-                onChange={e => setNewPlayerName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addPlayer(newPlayerName)}
-                className="border p-2 rounded"
-                aria-label="Neuer Spielername"
-              />
-              <button className="btn btn-primary" onClick={() => addPlayer(newPlayerName)} aria-label="Spieler austauschen">
-                Spieler austauschen
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 justify-center mb-4">
-              {players.map((player, index) => (
-                <span key={player} className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full flex items-center gap-2 font-bold">
-                  {player}
-                  <div className="flex flex-col ml-2">
-                    <button
-                      className="text-blue-600 hover:text-blue-900 text-xs leading-none"
-                      onClick={() => movePlayer(player, -1)}
-                      disabled={index === 0}
-                      aria-label={`Spieler ${player} nach oben verschieben`}
-                    >
-                      ▲
-                    </button>
-                    <button
-                      className="text-blue-600 hover:text-blue-900 text-xs leading-none"
-                      onClick={() => movePlayer(player, 1)}
-                      disabled={index === players.length - 1}
-                      aria-label={`Spieler ${player} nach unten verschieben`}
-                    >
-                      ▼
-                    </button>
-                  </div>
-                  <button
-                    className="text-blue-600 hover:text-blue-900 font-bold"
-                    onClick={() => removePlayer(player)}
-                    aria-label={`Spieler ${player} entfernen`}
-                  >
-                    x
-                  </button>
-                </span>
-              ))}
-            </div>
-            <button
-                className="btn btn-secondary w-full"
-                onClick={() => setShowDealerSelectionModal(true)}
-                aria-label="Erster Geber am Abend festlegen"
-            >
-                Erster Geber am Abend festlegen
-            </button>
-            {currentDealer && (
-                <p className="text-center text-gray-700 mt-2">Aktueller Geber: <span className="font-bold">{currentDealer}</span></p>
-            )}
-          </div>
-
-          {/* Time Bomb */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-700 mb-3 text-center">Zeitzünder</h2>
-            <div className="flex justify-center">
-              <input
-                type="time"
-                value={timeBomb}
-                onChange={e => setTimeBomb(e.target.value)}
-                className="border p-2 rounded"
-                aria-label="Zeitzünder setzen"
-              />
-            </div>
-          </div>
-
-          {/* Game Input */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-700 mb-3 text-center">Spieltyp &nbsp; / &nbsp; Punkte der Gewinner &nbsp; / &nbsp; Ansagen &nbsp; / &nbsp; Sonderpunkte</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 text-base font-bold mb-2">Spieltyp:</label>
-                <select
-                  value={gameType}
-                  onChange={e => setGameType(e.target.value)}
-                  className="w-full"
-                  aria-label="Spieltyp auswählen"
-                >
-                  <option value="normal">Normalspiel</option>
-                  <optgroup label="Pflichtsolo">
-                    <option value="pflichtsolo_knochenloser">Knochenloser</option>
-                    <option value="pflichtsolo_bilder">Bilder</option>
-                    <option value="pflichtsolo_farbe">Farbe</option>
-                  </optgroup>
-                  <optgroup label="Lüstling">
-                    <option value="lustling_knochenloser">Knochenloser</option>
-                    <option value="lustling_bilder">Bilder</option>
-                    <option value="lustling_farbe">Farbe</option>
-                  </optgroup>
-                  <option value="schlanker_martin">Schlanker Martin</option>
-                  <option value="stilles_solo">Stilles Solo</option>
-                  <option value="rote_luise">Rote Luise</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-700 text-base font-bold mb-2">Gewinner (Mehrfachauswahl):</label>
-                <select
-                  multiple
-                  value={winningPlayers}
-                  onChange={e => setWinningPlayers(Array.from(e.target.selectedOptions).map(o => o.value))}
-                  className="w-full"
-                  aria-label="Gewinner auswählen"
-                >
-                  {players.map(player => (
-                    <option key={player} value={player} className="font-bold">{player}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-span-full">
-                <label className="block text-gray-700 text-base font-bold mb-2">Punkte der Gewinner:</label>
-                <div className="flex justify-center">
-                  <input
-                    type="number"
-                    value={points}
-                    onChange={e => setPoints(Number(e.target.value))}
-                    min="0"
-                    max="240" 
-                    className="border p-2 rounded w-48"
-                    aria-label="Punkte der Gewinner"
-                  />
-                </div>
-              </div>
-              <div className="col-span-full">
-                <label className="block text-gray-700 text-base font-bold mb-2">Vorgeführter Spieler (optional):</label>
-                <select
-                  value={vorgefuehrtePlayer || ''}
-                  onChange={e => setVorgefuehrtePlayer(e.target.value === '' ? null : e.target.value)}
-                  className="w-full"
-                  aria-label="Vorgeführter Spieler auswählen"
-                >
-                  <option value="">Kein vorgeführter Spieler</option>
-                  {players.map(player => (
-                    <option key={player} value={player}>{player}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            {gameType === 'schlanker_martin' && (
-              <div className="mb-4">
-                <label className="inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={noStichMade}
-                    onChange={() => setNoStichMade(!noStichMade)}
-                    className="form-checkbox h-5 w-5 text-red-600 rounded"
-                  />
-                  <span className="ml-2 text-gray-700">Kein Stich gemacht (Schlanker Martin)</span>
-                </label>
-              </div>
-            )}
-            <div className="mb-4">
-              <label className="block text-gray-700 text-base font-bold mb-2">Ansagen:</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { key: 'Re', label: 'Re' },
-                  { key: 'Kontra', label: 'Kontra' },
-                  { key: 'GegenDieAlten', label: 'Gegen die Alten' },
-                  { key: 'ReKontra', label: <>Re/Kontra<br/>(durch Genscher)</> },
-                ].map(({ key, label }) => (
-                  <label key={key} className={`inline-flex items-center ${gameType === 'rote_luise' && players.filter(p => !winningPlayers.includes(p)).length === 1 && !['Keine90', 'Keine60', 'Keine30', 'Keine0'].includes(key) ? 'opacity-50' : ''}`}>
-                    <input
-                      type="checkbox"
-                      checked={ansagen[key]}
-                      onChange={() => setAnsagen(prev => ({ ...prev, [key]: !prev[key] }))}
-                      disabled={gameType === 'rote_luise' && players.filter(p => !winningPlayers.includes(p)).length === 1 && !['Keine90', 'Keine60', 'Keine30', 'Keine0'].includes(key)}
-                      className="form-checkbox h-5 w-5 text-blue-600 rounded"
-                    />
-                    <span className="ml-2 text-gray-700">{label}</span>
-                  </label>
-                ))}
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
-                {[
-                  { key: 'Keine90', label: 'Keine 90' },
-                  { key: 'Keine60', label: 'Keine 60' },
-                  { key: 'Keine30', label: 'Keine 30' },
-                  { key: 'Keine0', label: 'Keine 0' },
-                ].map(({ key, label }) => (
-                  <label key={key} className={`inline-flex items-center ${gameType === 'rote_luise' && players.filter(p => !winningPlayers.includes(p)).length === 1 && !['Keine90', 'Keine60', 'Keine30', 'Keine0'].includes(key) ? 'opacity-50' : ''}`}>
-                    <input
-                      type="checkbox"
-                      checked={ansagen[key]}
-                      onChange={() => setAnsagen(prev => ({ ...prev, [key]: !prev[key] }))}
-                      disabled={gameType === 'rote_luise' && players.filter(p => !winningPlayers.includes(p)).length === 1 && !['Keine90', 'Keine60', 'Keine30', 'Keine0'].includes(key)}
-                      className="form-checkbox h-5 w-5 text-blue-600 rounded"
-                    />
-                    <span className="ml-2 text-gray-700">{label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-base font-bold mb-2">Sonderpunkte:</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  { key: 'FuchsGefangenWinner', label: 'Fuchs gefangen (Gewinner)', type: 'number' },
-                  { key: 'FuchsGefangenLoser', label: 'Fuchs gefangen (Verlierer)', type: 'number' },
-                  { key: 'KarlchenMuellerWinner', label: 'Karlchen Müller (Gewinner)', type: 'number' },
-                  { key: 'KarlchenMuellerLoser', label: 'Karlchen Müller (Verlierer)', type: 'number' },
-                ].map(({ key, label, type }) => (
-                  <label key={key} className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={sonderpunkte[key]}
-                      onChange={e => setSonderpunkte(prev => ({ ...prev, [key]: Math.max(0, Number(e.target.value)) }))}
-                      min="0"
-                      className="border p-2 rounded w-16 text-center"
-                      aria-label={label}
-                    />
-                    <span className="text-gray-700 text-sm">{label}</span>
-                  </label>
-                ))}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
-                {[
-                  { key: 'DoppelkopfWinner', label: 'Doppelkopf (Gewinner)', type: 'number' },
-                  { key: 'DoppelkopfLoser', label: 'Doppelkopf (Verlierer)', type: 'number' },
-                  { key: 'FuchsMachtLetztenStichWinner', label: 'Fuchs macht letzten Stich (Gewinner)', type: 'number' },
-                  { key: 'FuchsMachtLetztenStichLoser', label: 'Fuchs macht letzten Stich (Verlierer)', type: 'number' },
-                ].map(({ key, label, type }) => (
-                  <label key={key} className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={sonderpunkte[key]}
-                      onChange={e => setSonderpunkte(prev => ({ ...prev, [key]: Math.max(0, Number(e.target.value)) }))}
-                      min="0"
-                      className="border p-2 rounded w-16 text-center"
-                      aria-label={label}
-                    />
-                    <span className="text-gray-700 text-sm">{label}</span>
-                  </label>
-                ))}
-              </div>
-              <div className="mt-4">
-                <label className={`inline-flex items-center ${gameType !== 'schlanker_martin' ? 'opacity-50' : ''}`}>
-                  <input
-                    type="checkbox"
-                    checked={sonderpunkte.SchlankerMartinSonderpunkt}
-                    onChange={() => setSonderpunkte(prev => ({ ...prev, SchlankerMartinSonderpunkt: !prev.SchlankerMartinSonderpunkt }))}
-                    disabled={gameType !== 'schlanker_martin'}
-                    className="form-checkbox h-5 w-5 text-purple-600 rounded"
-                  />
-                  <span className="ml-2 text-gray-700">Schlanker Martin Sonderpunkt</span>
-                </label>
-              </div>
-            </div>
-            <button className="btn btn-secondary w-full text-lg" onClick={addGame} aria-label="Spiel protokollieren">
-              {editingGameIndex !== null ? 'Änderungen speichern' : 'Protokollieren'}
-            </button>
-          </div>
-
-          {/* Game History */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-700 mb-3">Spielverlauf</h2>
-            <div className="overflow-x-auto">
-              <table className="game-history-table w-full text-left table-auto">
-                <thead>
-                  <tr className="bg-gray-200 text-gray-700">
-                    <th className="p-2 whitespace-nowrap rounded-tl-lg border-r border-gray-300">Geber</th>
-                    <th className="p-2 game-type-cell border-r border-gray-300">Spiel</th>
-                    <th className="p-2 details-cell border-r border-gray-300">Details</th>
-                    {players.map((player, index) => (
-                      <th key={player} className={`p-2 whitespace-nowrap text-center ${index < players.length - 1 ? 'border-r border-gray-300' : ''}`}> {/* Centered and added border */}
-                        <div className={`player-header-content ${playerSoloStatus[player]?.knochenloser && playerSoloStatus[player]?.bilder && playerSoloStatus[player]?.farbe ? 'player-header-completed-solos' : ''}`}>
-                          <span className="font-bold">{player}</span>
-                          <div className="solo-indicators">
-                            <span className={`solo-indicator ${playerSoloStatus[player]?.knochenloser ? 'completed' : 'pending'}`} title="Knochenloser Solo">K</span>
-                            <span className={`solo-indicator ${playerSoloStatus[player]?.bilder ? 'completed' : 'pending'}`} title="Bilder Solo">B</span>
-                            <span className={`solo-indicator ${playerSoloStatus[player]?.farbe ? 'completed' : 'pending'}`} title="Farbe Solo">F</span>
-                          </div>
-                        </div>
-                      </th>
-                    ))}
-                    <th className="p-2 whitespace-nowrap rounded-tr-lg text-darkblue-bold">Pot</th>
-                    <th className="p-2 whitespace-nowrap">Aktion</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {gameHistory.length === 0 ? (
-                    <tr>
-                      <td colSpan={players.length + 6} className="text-gray-500 text-center py-4">Noch keine Spiele protokolliert.</td>
-                    </tr>
-                  ) : (
-                    gameHistory.map((game, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="p-2 whitespace-nowrap border-r border-gray-300">{game.dealer || '-'}</td>
-                        <td className="p-2 game-type-cell border-r border-gray-300">
-                          {game.gameType === 'rote_luise' ? `Rote Luise (${game.points})` :
-                           game.gameType.includes('_') ? 
-                            `${game.gameType.split('_')[0].charAt(0).toUpperCase() + game.gameType.split('_')[0].slice(1)} (${game.points})<br/>(${game.gameType.split('_')[1].charAt(0).toUpperCase() + game.gameType.split('_')[1].slice(1)})` : 
-                            `${game.gameType.charAt(0).toUpperCase() + game.gameType.slice(1)} (${game.points})`}
-                        </td>
-                        <td className="p-2 details-cell border-r border-gray-300">
-                          {[...game.ansagen, ...game.sonderpunkte.map(sp => {
-                            const [key, value] = sp.split(':');
-                            const spLabels = {
-                                DoppelkopfWinner: 'Doppelkopf (Gewinner)',
-                                DoppelkopfLoser: 'Doppelkopf (Verlierer)',
-                                KarlchenMuellerWinner: 'Karlchen Müller (Gewinner)',
-                                KarlchenMuellerLoser: 'Karlchen Müller (Verlierer)',
-                                FuchsGefangenWinner: 'Fuchs gefangen (Gewinner)',
-                                FuchsGefangenLoser: 'Fuchs gefangen (Verlierer)',
-                                FuchsMachtLetztenStichWinner: 'Fuchs macht letzten Stich (Gewinner)',
-                                FuchsMachtLetztenStichLoser: 'Fuchs macht letzten Stich (Verlierer)',
-                                SchlankerMartinSonderpunkt: 'Schlanker Martin Sonderpunkt',
-                            };
-                            return `${spLabels[key] || key}: ${value}`;
-                          })].join('; ') || '-'}
-                        </td>
-                        {players.map((player, playerIndex) => (
-                          <td key={player} className={`p-2 text-center ${game.playerScores[player] < 0 ? 'points-negative' : 'points-positive'} ${playerIndex < players.length - 1 ? 'border-r border-gray-300' : ''}`}> {/* Centered and added border */}
-                            {game.playerScores[player] || 0}
-                          </td>
-                        ))}
-                        <td className="p-2 whitespace-nowrap text-darkblue-bold border-r border-gray-300">{game.potAfterGame}</td>
-                        <td className="p-2 whitespace-nowrap">
-                          <button className="btn btn-warning text-sm px-3 py-1" onClick={() => editGame(index)} aria-label={`Spiel ${index + 1} bearbeiten`}>
-                            Ändern
-                          </button>
-                          <button className="btn btn-danger text-sm px-3 py-1 ml-2" onClick={() => deleteGame(index)} aria-label={`Spiel ${index + 1} löschen`}>
-                            Löschen
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-gray-200 font-bold text-gray-800 border-t-2 border-gray-400">
-                    <td className="p-2 border-r border-gray-300" colSpan="3">Gesamtstand</td> {/* Changed colSpan from 4 to 3 */}
-                    {players.map((player, index) => {
-                      const total = gameHistory.reduce((sum, game) => sum + (game.playerScores[player] || 0), -30);
-                      return (
-                        <td key={player} className={`p-2 text-center ${total < 0 ? 'points-negative' : 'points-positive'} ${index < players.length - 1 ? 'border-r border-gray-300' : ''}`}> {/* Centered and added border */}
-                          {total}
-                        </td>
-                      );
-                    })}
-                    <td colSpan="2"></td>
-                  </tr>
-                  <tr className="bg-gray-200 font-bold text-gray-800 ranking-row">
-                    <td className="p-2 border-r border-gray-300" colSpan="3">Ranking</td> {/* Changed colSpan from 4 to 3 */}
-                    {players.map((player, index) => {
-                      const total = gameHistory.reduce((sum, game) => sum + (game.playerScores[player] || 0), -30);
-                      const rank = players.map(p => ({
-                        name: p,
-                        score: gameHistory.reduce((sum, game) => sum + (game.playerScores[p] || 0), -30)
-                      })).sort((a, b) => b.score - a.score).findIndex(p => p.name === player) + 1;
-                      return <td key={player} className={`p-2 text-center ${index < players.length - 1 ? 'border-r border-gray-300' : ''}`}>{`${rank}.`}</td>; {/* Centered and added border */}
-                    })}
-                    <td colSpan="2"></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            <div className="flex gap-3 mt-4">
-              <button className="btn btn-secondary" onClick={undo} disabled={historyPointer === 0} aria-label="Letzte Aktion rückgängig machen">
-                Rückgängig
-              </button>
-              <button className="btn btn-secondary" onClick={redo} disabled={historyPointer === historyStates.length - 1} aria-label="Letzte Aktion wiederholen">
-                Wiederholen
-              </button>
-            </div>
-          </div>
-
-          {/* Session Management */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-700 mb-3">Sitzung verwalten</h2>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                className="btn btn-danger flex-grow"
-                onClick={() => {
-                  setModalMessage("Möchtest du wirklich eine neue Sitzung starten? Alle ungespeicherten Daten gehen verloren.");
-                  setModalCallback(() => () => startNewSession(dbInstance, true));
-                  setShowModal(true);
-                }}
-                aria-label="Neue Sitzung starten"
-              >
-                Neue Sitzung starten
-              </button>
-              <button className="btn btn-primary flex-grow" onClick={() => saveCurrentSession(dbInstance, true)} aria-label="Sitzung speichern">
-                Sitzung speichern
-              </button>
-              <button className="btn btn-secondary flex-grow" onClick={() => loadAllSessions(dbInstance, userId)} aria-label="Sitzungen laden">
-                Sitzungen laden
-              </button>
-            </div>
-            <div className="mt-4 space-y-2">
-              {sessions.map(session => (
-                <div key={session.id} className="bg-gray-100 p-3 rounded-lg flex justify-between items-center shadow-sm">
-                  <span className="font-semibold text-gray-700">{session.id}</span>
-                  <div className="flex gap-2">
-                    <button
-                      className="btn btn-secondary text-sm px-3 py-1"
-                      onClick={() => {
-                          setCurrentSessionId(session.id);
-                          applyState({
-                              players: session.players || defaultPlayers,
-                              pot: session.pot || 120,
-                              gameHistory: session.gameHistory || [],
-                              playerSoloStatus: session.playerSoloStatus || defaultPlayers.reduce((acc, p) => ({ ...acc, [p]: { ...initialPlayerSoloStatus } }), {}),
-                              currentDealer: session.currentDealer || null
-                          });
-                          setHistoryStates([{
-                              players: session.players || defaultPlayers,
-                              pot: session.pot || 120,
-                              gameHistory: session.gameHistory || [],
-                              playerSoloStatus: session.playerSoloStatus || defaultPlayers.reduce((acc, p) => ({ ...acc, [p]: { ...initialPlayerSoloStatus } }), {}),
-                              currentDealer: session.currentDealer || null
-                          }]);
-                          setHistoryPointer(0);
-                      }}
-                      aria-label={`Sitzung ${session.id} laden`}
-                    >
-                      Laden
-                    </button>
-                    <button
-                      className="btn btn-danger text-sm px-3 py-1"
-                      onClick={() => {
-                        setModalMessage(`Möchtest du die Sitzung "${session.id}" wirklich löschen?`);
-                        setModalCallback(() => async () => deleteSession(session.id));
-                        setShowModal(true);
-                      }}
-                      aria-label={`Sitzung ${session.id} löschen`}
-                    >
-                      Löschen
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Message Modal */}
-          {showModal && (
-            <div className="modal" style={{ display: 'flex' }}>
-              <div className="modal-content">
-                <span className="close-button" onClick={() => setShowModal(false)} aria-label="Modal schließen">×</span>
-                <p className="text-lg text-gray-800">{modalMessage}</p>
-                {modalCallback && (
-                  <div className="modal-buttons">
-                    <button className="btn btn-secondary px-4 py-2" onClick={() => { setShowModal(false); setModalCallback(null); }} aria-label="Abbrechen">
-                      Abbrechen
-                    </button>
-                    <button className="btn btn-danger px-4 py-2" onClick={() => { modalCallback(); setShowModal(false); setModalCallback(null); }} aria-label="Bestätigen">
-                      Bestätigen
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Replace Player Modal */}
-          {showReplaceModal && (
-            <div className="modal" style={{ display: 'flex' }}>
-              <div className="modal-content">
-                <span className="close-button" onClick={() => setShowReplaceModal(false)} aria-label="Modal schließen">×</span>
-                <h3 className="text-xl font-semibold text-gray-700 mb-4">Spieler ersetzen</h3>
-                <p className="text-gray-700 mb-4">Wähle einen Spieler zum Ersetzen aus:</p>
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Spieler zum Ersetzen:</label>
-                  <select
-                    value={playerToReplace}
-                    onChange={e => setPlayerToReplace(e.target.value)}
-                    className="w-full"
-                    aria-label="Spieler zum Ersetzen auswählen"
-                  >
-                    <option value="">Wähle einen Spieler</option>
-                    {players.map(player => (
-                      <option key={player} value={player}>{player}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-6">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Neuer Spielername:</label>
-                  <input
-                    type="text"
-                    value={newPlayerName}
-                    onChange={e => setNewPlayerName(e.target.value)}
-                    placeholder="Neuer Spielername"
-                    className="border p-2 rounded"
-                    aria-label="Neuer Spielername"
-                  />
-                </div>
-                <div className="modal-buttons">
-                  <button className="btn btn-secondary px-4 py-2" onClick={() => setShowReplaceModal(false)} aria-label="Abbrechen">
-                    Abbrechen
-                  </button>
-                  <button className="btn btn-primary px-4 py-2" onClick={replacePlayer} aria-label="Ersetzen">
-                    Ersetzen
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Dealer Selection Modal */}
-          {showDealerSelectionModal && (
-            <div className="modal" style={{ display: 'flex' }}>
-              <div className="modal-content">
-                <span className="close-button" onClick={() => setShowDealerSelectionModal(false)} aria-label="Modal schließen">×</span>
-                <h3 className="text-xl font-semibold text-gray-700 mb-4">Ersten Geber auswählen</h3>
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Wähle den ersten Geber:</label>
-                  <select
-                    value={currentDealer || ''}
-                    onChange={e => setCurrentDealer(e.target.value)}
-                    className="w-full"
-                    aria-label="Ersten Geber auswählen"
-                  >
-                    <option value="">Wähle einen Geber</option>
-                    {players.map(player => (
-                      <option key={player} value={player}>{player}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="modal-buttons">
-                  <button className="btn btn-primary px-4 py-2" onClick={() => setShowDealerSelectionModal(false)} aria-label="Bestätigen">
-                    Bestätigen
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    };
-
-    ReactDOM.render(<App />, document.getElementById('root'));
-  </script>
-</body>
-</html>
+        set
